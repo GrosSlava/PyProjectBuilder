@@ -79,7 +79,7 @@ class FProgramOptions:
                 self.__PrintInfoAboutOption("--REBUILD", "Clear intermediate and build project")
                 self.__PrintInfoAboutOption("--CLEAR", "Clear intermediate files")
                 self.__PrintInfoAboutOption("--SILENT", "Disable compilation logs")
-                self.__PrintInfoAboutOption("--NO_MULTIPROCESSING", "Disable parallel compiation")
+                self.__PrintInfoAboutOption("--NO_MULTIPROCESSING", "Disable parallel compilation")
                 sys.exit(0)
             elif LOption == '--version' or LOption == "-v":
                 Logger.Log(PyProjectBuildLibrary.PY_PROJECT_BUILD_VERSION)

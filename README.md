@@ -26,7 +26,7 @@ It is easier in use than Makefile or CMake.
 ```--REBUILD```                                         ---Clear intermediate and build project \
 ```--CLEAR```                                           ---Clear intermediate files \
 ```--SILENT```                                          ---Disable compilation logs \
-```--NO_MULTIPROCESSING```                              ---Disable parallel compiation
+```--NO_MULTIPROCESSING```                              ---Disable parallel compilation
 
 ## Build config options
 
@@ -53,6 +53,6 @@ IsLibrary = false
 Modules = Source/Module1
 Modules = Source/Module2
 Modules = Source/Module2
-AdditionalIncludeDirss = Source/Public;ThirdParty
+AdditionalIncludeDirs = Source/Public;ThirdParty
 ConvertWarningsToErrors = true
 ```
