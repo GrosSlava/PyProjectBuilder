@@ -4,17 +4,16 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-import shutil
-import pathlib
 import glob
 import multiprocessing
 
 import PyProjectBuildLibrary
+import FilesPath
 import Logger
 import ProgramOptions
 import ConfigFileParser
 import CompileFile
-
+import FilesLinker
 
 
 
@@ -25,18 +24,55 @@ import CompileFile
 '''
 class FBuildPipeline:
     def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile):
-        self.ProgramOptions = ProgramOptions        # cached program options
-        self.ConfigFile = ConfigFile                # cached config file info
-        self.FilesToCompile = []                    # array of files to build
+        self.ProgramOptions = ProgramOptions                            # cached program options
+        self.ConfigFile = ConfigFile                                    # cached config file info
+        self.FilesToCompile = list[CompileFile.FCompilingFile]()        # array of files to build
+        self.ObjectFiles = list[str]()                                  # array of paths to object files to link (without platform specific extension)
     
-
         self.ProcessesManager = multiprocessing.Manager()
-        self.BuildProgress = self.ProcessesManager.Value("BuildProgress", 0)                      # count of compiled files
-        self.ProgessMutex = multiprocessing.Lock()  # mutex for BuildProgress
+        self.BuildProgress = self.ProcessesManager.Value("BuildProgress", 0)                   
+        self.ProgessMutex = multiprocessing.Lock()
 
-        self.CPUCount = multiprocessing.cpu_count()
+        if self.ProgramOptions.UseMultiprocessing:
+            self.CPUCount = multiprocessing.cpu_count()
+        else:
+            self.CPUCount = 1
+
+
+        LBuildModules = list[str]()
+        for i in range(len(self.ConfigFile.BuildModules)):
+            if self.ConfigFile.BuildModules[i].strip() == "":
+                continue
+            LBuildModules.append(self.ConfigFile.BuildModules[i].strip())
+        self.ConfigFile.BuildModules = LBuildModules
+
+        LIgnoreFiles = list[str]()
         for i in range(len(self.ConfigFile.Ignore)):
-            self.ConfigFile.Ignore[i] = os.path.join(self.ProgramOptions.ProjectRoot, self.ConfigFile.Ignore[i])
+            if self.ConfigFile.Ignore[i].strip() == "":
+                continue
+            LIgnoreFiles.append(os.path.join(self.ProgramOptions.ProjectRoot, self.ConfigFile.Ignore[i].strip()))
+        self.ConfigFile.Ignore = LIgnoreFiles
+
+        LAdditionalIncludeDirs = list[str]()
+        for i in range(len(self.ConfigFile.AdditionalIncludeDirs)):
+            if self.ConfigFile.AdditionalIncludeDirs[i].strip() == "":
+                continue
+            LAdditionalIncludeDirs.append(self.ConfigFile.AdditionalIncludeDirs[i].strip())
+        self.ConfigFile.AdditionalIncludeDirs = LAdditionalIncludeDirs
+
+        LAdditionalLibsDirs = list[str]()
+        for i in range(len(self.ConfigFile.AdditionalLibsDirs)):
+            if self.ConfigFile.AdditionalLibsDirs[i].strip() == "":
+                continue
+            LAdditionalLibsDirs.append(self.ConfigFile.AdditionalLibsDirs[i].strip())
+        self.ConfigFile.AdditionalLibsDirs = LAdditionalLibsDirs
+
+        LLibs = list[str]()
+        for i in range(len(self.ConfigFile.Libs)):
+            if self.ConfigFile.Libs[i].strip() == "":
+                continue
+            LLibs.append(self.ConfigFile.Libs[i].strip())
+        self.ConfigFile.Libs = LLibs
     #------------------------------------------------------#
 
 
@@ -51,24 +87,6 @@ class FBuildPipeline:
     #------------------------------------------------------#
 
     '''
-        @return absolute path to project intermediate folder.
-    '''
-    def __GetIntermediateFolderPath(self) -> str:
-        return os.path.join(self.ProgramOptions.ProjectRoot, self.ConfigFile.IntermediateFolder)
-    #------------------------------------------------------#
-    '''
-        @return absolute path to project build folder.
-    '''
-    def __GetBuildFolderPath(self) -> str:
-        return os.path.join(self.ProgramOptions.ProjectRoot, self.ConfigFile.BuildFolder)
-    #------------------------------------------------------#
-    '''
-        @return absolute path to project module folder.
-    '''
-    def __GetModuleFolderPath(self, ModuleRelativePath: str) -> str:
-        return os.path.join(self.ProgramOptions.ProjectRoot, ModuleRelativePath)
-    #------------------------------------------------------#
-    '''
         Check that path is ignored by any from ingore array.
     '''
     def __IsPathIgnored(self, FilePath: str) -> bool:
@@ -81,10 +99,9 @@ class FBuildPipeline:
     '''
         Thread safe to increment build progress.
     '''
-    def __IncrementBuildProcess(self, CompiledFile: str) -> None:
+    def __IncrementBuildProcess(self) -> None:
         self.ProgessMutex.acquire()
         self.BuildProgress.value += 1
-        self.__Log("[{Progress}/{Total}] {File}".format(Progress = str(self.BuildProgress.value), Total = str(len(self.FilesToCompile)), File = CompiledFile))
         self.ProgessMutex.release()
     #------------------------------------------------------#
 
@@ -102,36 +119,42 @@ class FBuildPipeline:
         Prepere for building. Create needed folders. Check modules.
     '''
     def __PrepareForBuild(self) -> None:
-        PyProjectBuildLibrary.CreateDirIfNotExist(self.__GetIntermediateFolderPath())
-        PyProjectBuildLibrary.CreateDirIfNotExist(os.path.join(self.__GetIntermediateFolderPath(), str(self.ProgramOptions.BuildType)))  
+        PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetIntermediateFolderRootPath(self.ProgramOptions, self.ConfigFile))
+        PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetIntermediateFolderPath(self.ProgramOptions, self.ConfigFile))  
 
-        LBuildDir = self.__GetBuildFolderPath()
-        if os.path.exists(LBuildDir) and os.path.isdir(LBuildDir):
-            shutil.rmtree(LBuildDir)
+        LBuildDir = FilesPath.GetBuildFolderPath(self.ProgramOptions, self.ConfigFile)
+        PyProjectBuildLibrary.RemoveDirIfExists(LBuildDir)
         PyProjectBuildLibrary.CreateDirIfNotExist(LBuildDir)
         PyProjectBuildLibrary.CreateDirIfNotExist(os.path.join(LBuildDir, str(self.ProgramOptions.BuildType)))  
 
         for LModule in self.ConfigFile.BuildModules:
-            LModulePath = self.__GetModuleFolderPath(LModule)
+            LModulePath = FilesPath.GetModuleFolderPath(self.ProgramOptions, LModule)
             if not PyProjectBuildLibrary.CheckDirExists(LModulePath):
                 Logger.WarningLog("Module '{ModulePath}' not exist.".format(ModulePath = LModule))
                 continue
 
-            PyProjectBuildLibrary.CreateDirIfNotExist(os.path.join(self.__GetIntermediateFolderPath(), str(self.ProgramOptions.BuildType), LModule))  
+            PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetModuleIntermediateFolderPath(self.ProgramOptions, self.ConfigFile, LModule))  
 
             for LFileName in glob.iglob(os.path.join(LModulePath, "**"), recursive = True):
-                if not PyProjectBuildLibrary.IsFileSupported(LFileName) or self.__IsPathIgnored(LFileName) or not self.__CheckFileNeedToBuild(LFileName):
+                if not PyProjectBuildLibrary.IsFileSupported(LFileName) or self.__IsPathIgnored(LFileName):
                     continue
-                self.FilesToCompile.append(CompileFile.FCompilingFile(self.ProgramOptions.ProjectRoot, self.ConfigFile, LModule, LFileName))
+                if self.__CheckFileNeedToBuild(LFileName):
+                    self.FilesToCompile.append(CompileFile.FCompilingFile(self.ProgramOptions, self.ConfigFile, LModule, LFileName))
+                self.ObjectFiles.append(FilesPath.GetObjectFilePath(self.ProgramOptions, self.ConfigFile, LModule, PyProjectBuildLibrary.GetFileName(LFileName), ""))
     #------------------------------------------------------#
-   
+
     '''
         Do parallel build work.
     '''
     def __ProcessParallelBuild(self, ProcessIndex: int) -> None:
         for i in range(ProcessIndex, len(self.FilesToCompile), self.CPUCount):
-            self.FilesToCompile[i].Compile()
-            self.__IncrementBuildProcess(self.FilesToCompile[i].FilePath)
+            LStdErr = self.FilesToCompile[i].Compile()
+
+            self.__IncrementBuildProcess()
+
+            if len(LStdErr) > 0:
+                self.__Log(LStdErr)
+            self.__Log("[{Progress}/{Total}] {File}".format(Progress = str(self.BuildProgress.value), Total = str(len(self.FilesToCompile)), File = self.FilesToCompile[i].FilePath))
     #------------------------------------------------------#
     '''
         Do build actions.
@@ -139,22 +162,28 @@ class FBuildPipeline:
     def __ProcessBuild(self) -> None:
         self.__Log("Compiling {CountOfFiles} actions by {CPUCount} processes...".format(CountOfFiles = str(len(self.FilesToCompile)), CPUCount = str(self.CPUCount)))
         
-        LWorkersPool = []
-        for i in range(self.CPUCount):
-            p = multiprocessing.Process(target = self.__ProcessParallelBuild, args=(i,))
-            LWorkersPool.append(p)
-            p.start()
+        if self.CPUCount > 1:
+            LWorkersPool = list[multiprocessing.Process]()
+            for i in range(self.CPUCount):
+                p = multiprocessing.Process(target = self.__ProcessParallelBuild, args=(i,))
+                LWorkersPool.append(p)
+                p.start()
 
-        for i in range(self.CPUCount):
-            LWorkersPool[i].join()
+            for i in range(self.CPUCount):
+                LWorkersPool[i].join()
+        else:
+            self.__ProcessParallelBuild(0)
     #------------------------------------------------------#
-   
+
     '''
         Call linker to link compiled object files.
     '''
     def __LinkObjectFiles(self) -> None:
-        #TODO
-        pass
+        self.__Log("Linkng...")
+        LLinker = FilesLinker.FLinker(self.ProgramOptions, self.ConfigFile, self.ObjectFiles)
+        LStdErr = LLinker.Link()
+        if len(LStdErr) > 0:
+            self.__Log(LStdErr)
     #------------------------------------------------------#
 
 
@@ -173,11 +202,11 @@ class FBuildPipeline:
     '''
     def Build(self) -> None:
         LBuildTime = PyProjectBuildLibrary.ClockFunction(self.__Build)
-        self.__Log("Process finished at {Seconds} seconds.". format(Seconds = str(LBuildTime)))
+        self.__Log("Process finished at {Seconds} seconds.".format(Seconds = str(LBuildTime)))
     #------------------------------------------------------#
     '''
         Clear intermediate files.
     '''
     def Clear(self) -> None:
-        PyProjectBuildLibrary.RemoveDirIfExists(self.__GetIntermediateFolderPath())
+        PyProjectBuildLibrary.RemoveDirIfExists(FilesPath.GetIntermediateFolderPath(self.ProgramOptions, self.ConfigFile))
     #------------------------------------------------------#

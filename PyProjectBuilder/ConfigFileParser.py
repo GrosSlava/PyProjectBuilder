@@ -19,11 +19,15 @@ class FConfigFile:
         self.ConfigFilePath = ConfigFilePath        # absolute path to project config file
         self.IntermediateFolder = "Intermediate"    # relative path to folder for intermediate files
         self.BuildFolder = "Build"                  # relative path to folder for build files
-        self.BuildModules = list[str]()             # array of paths to modules(folders) to build
+        self.BuildModules = list[str]()             # array of relative paths to modules(folders) to build
         self.Ignore = list[str]()                   # array of relative paths to files/folders to ignore
         self.AdditionalIncludeDirs = list[str]()    # array of relative paths to dirs for includes search 
+        self.AdditionalLibsDirs = list[str]()       # array of absolute paths to dirs for libraries search 
+        self.Libs = list[str]()                     # array of absolute paths to libs files or its name to link
         self.IsLibrary = False                      # build as library or not
         self.ResultName = "a"                       # name of building result
+        self.EntryPointName = ""                    # name of the function that will be the entry point (empty means compiler default)
+        self.ConvertWarningsToErrors = False        # tell compiler convert warnings into errors
     #------------------------------------------------------#
 
 
@@ -61,10 +65,18 @@ def ParseConfigFile(ConfigFilePath: str) -> FConfigFile:
                 LProjectConfig.BuildModules.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
             elif LLeft == "Ignore":
                 LProjectConfig.Ignore.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
-            elif LLeft == "AdditionalInclude":
+            elif LLeft == "AdditionalIncludeDirs":
                 LProjectConfig.AdditionalIncludeDirs.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
+            elif LLeft == "AdditionalLibsDirs":
+                LProjectConfig.AdditionalLibsDirs.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
+            elif LLeft == "Libs":
+                LProjectConfig.Libs.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
             elif LLeft == "ResultName":
                 LProjectConfig.ResultName = LRight
+            elif LLeft == "EntryPointName":
+                LProjectConfig.EntryPointName = LRight
+            elif LLeft == "ConvertWarningsToErrors":
+                LProjectConfig.ConvertWarningsToErrors = PyProjectBuildLibrary.StrToBool(LRight)
             else:
                 Logger.ErrorLog("Invalid configuration key: '{Key}'.".format(Key = LLeft))
 

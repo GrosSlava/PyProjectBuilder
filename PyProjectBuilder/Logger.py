@@ -3,7 +3,13 @@
 import os
 import sys
 
+import multiprocessing
 
+
+
+
+
+LogMutex = multiprocessing.Lock()
 
 
 
@@ -11,7 +17,9 @@ import sys
     Log message in universal format.
 '''
 def Log(Message: str) -> None:
+    LogMutex.acquire()
     print(Message)
+    LogMutex.release()
 #------------------------------------------------------#
 '''
     Log error message in universal format.

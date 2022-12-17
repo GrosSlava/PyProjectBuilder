@@ -22,10 +22,10 @@ if __name__ == "__main__":
     
     LBuildPipeline = PyProjectBuilder.BuildPipeline.FBuildPipeline(LProgramOptions, LProjectConfig)
 
-    if LProgramOptions.Action is PyProjectBuilder.ProgramOptions.EAction.BUILD:
+    if LProgramOptions.Action == PyProjectBuilder.ProgramOptions.EAction.BUILD:
         LBuildPipeline.Build()
-    elif LProgramOptions.Action is PyProjectBuilder.ProgramOptions.EAction.CLEAR:
+    elif LProgramOptions.Action == PyProjectBuilder.ProgramOptions.EAction.CLEAR:
         LBuildPipeline.Clear()
-    elif LProgramOptions.Action is PyProjectBuilder.ProgramOptions.EAction.REBUILD:
+    elif LProgramOptions.Action == PyProjectBuilder.ProgramOptions.EAction.REBUILD:
         LBuildPipeline.Clear()
         LBuildPipeline.Build()

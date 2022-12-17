@@ -21,10 +21,12 @@ It is easier in use than Makefile or CMake.
 ```--help```                                            ---List all options \
 ```--version```                                         ---Print current version \
 ```--BuildType=[Debug, Shipping]```                     ---Type of build \
+```--TargetArch=[x86, x86_64, armm, arm_64]```          ---Build target architecture \
 ```--BUILD```                                           ---Build project \
 ```--REBUILD```                                         ---Clear intermediate and build project \
 ```--CLEAR```                                           ---Clear intermediate files \
-```--SILENT```                                          ---Disable compilation logs
+```--SILENT```                                          ---Disable compilation logs \
+```--NO_MULTIPROCESSING```                              ---Disable parallel compiation
 
 ## Build config options
 
@@ -34,8 +36,12 @@ IsLibrary = true (Mark that this project is library, by default false) \
 Modules = Source/Module1;Source/Module2 (relative paths to building modules files) \
 Modules = Source/Module3 (append array of modules) \
 Ignore = Source/Debug.cpp;Source/DebugDir (relative paths to files or folders to ignore) \
-AdditionalInclude = Source/Public (additional relative paths to folders for includes search) \
-ResultName = MyProgram (name of resulting file, be default 'a')
+AdditionalIncludeDirs = Source/Public (additional relative paths to folders for includes search) \
+AdditionalLibsDirs = /media/user/sda/MyLibs (absolute paths to dirs where compiler can search linkig libs) \
+Libs = SFML (absolute paths to libs to link or it's name) \
+ResultName = MyProgram (name of resulting file, be default 'a') \
+EntryPointName = MyFooMain (name of the function that will be the entry point to the program, by default use compiler defaults) \
+ConvertWarningsToErrors = false (convert all compilation warnings into errors, by default false)
 
 example file PyBuildFile.txt:
 
@@ -47,5 +53,6 @@ IsLibrary = false
 Modules = Source/Module1
 Modules = Source/Module2
 Modules = Source/Module2
-AdditionalInclude = Source/Public;ThirdParty
+AdditionalIncludeDirss = Source/Public;ThirdParty
+ConvertWarningsToErrors = true
 ```

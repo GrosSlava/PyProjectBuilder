@@ -31,7 +31,7 @@ SUPPORTED_BUILD_PLATFORMS = [
 '''
 SUPPORTED_FILES = [ 
     ".c", 
-    ".C"
+    ".C",
     ".cpp",
     ".CPP"
 ]
@@ -76,6 +76,25 @@ def CreateDirIfNotExist(Dir: str) -> None:
 def RemoveDirIfExists(Dir: str) -> None:
     if os.path.exists(Dir) and os.path.isdir(Dir):
         shutil.rmtree(Dir)
+#------------------------------------------------------#
+'''
+    Extract extension from file path.
+'''
+def GetFileExtension(Path: str) -> str:
+    if not os.path.isfile(Path):
+        return ""
+    LSuffix = pathlib.Path(Path).suffix
+    if len(LSuffix) < 2:
+        return ""
+    return LSuffix[1:]
+#------------------------------------------------------#
+'''
+    Extract file name from file path.
+'''
+def GetFileName(Path: str) -> str:
+    if not os.path.isfile(Path):
+        return ""
+    return pathlib.Path(Path).stem
 #------------------------------------------------------#
 
 

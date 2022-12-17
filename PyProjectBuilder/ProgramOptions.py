@@ -16,32 +16,37 @@ import PyProjectBuildLibrary
 '''
     Project build type.
 '''
-class EBuildType(enum.Enum):
+class EBuildType(enum.IntEnum):
     DEBUG = 1,          # Build in debug mode
     SHIPPING = 2        # Build in release mode
 
     def __str__(self):
-        if self.value == 1:
-            return "DEBUG"
-        else:
-            return "SHIPPING"
+        return self.name
+    #------------------------------------------------------#
+
+'''
+    Target architecture.
+'''
+class ETargetArch(enum.IntEnum):
+    X86 = 1,            # Build for x86
+    X86_64 = 2,         # Build for x86-64
+    ARM = 3,            # build for arm
+    ARM_64 = 4          # build for arm-64
+
+    def __str__(self):
+        return self.name
     #------------------------------------------------------#
 
 '''
     Tool action.
 '''
-class EAction(enum.Enum):
+class EAction(enum.IntEnum):
     BUILD = 1,          # Build project
     REBUILD = 2,        # Clear intermediate and build project
     CLEAR = 3           # Clear intermediate files
 
     def __str__(self):
-        if self.value == 1:
-            return "BUILD"
-        elif self.value == 2:
-            return "REBUILD"
-        elif self.value == 3:
-            return "CLEAR"
+        return self.name
     #------------------------------------------------------#
 
 
@@ -55,8 +60,10 @@ class FProgramOptions:
         self.ConfigFilePath = os.path.join(os.getcwd(), "PyBuildFile.txt")  # absolute path to config file
         self.Action = EAction.BUILD                                         # current action
         self.BuildType = EBuildType.DEBUG                                   # build type
+        self.TargetArch = ETargetArch.X86_64                                # build target architecture
         self.ProjectRoot = os.getcwd()                                      # absolute path to project root dir
         self.Silent = False                                                 # mark to not print messages
+        self.UseMultiprocessing = True                                      # use all cores for parallel compilation
 
         for LArg in argv:
             LOption = LArg.strip() 
@@ -67,26 +74,38 @@ class FProgramOptions:
                 self.__PrintInfoAboutOption("--help", "List all options")
                 self.__PrintInfoAboutOption("--version", "Print current version")
                 self.__PrintInfoAboutOption("--BuildType=[Debug, Shipping]", "Type of build")
+                self.__PrintInfoAboutOption("--TargetArch=[x86, x86_64, arm, arm_64]", "Build target architecture")
                 self.__PrintInfoAboutOption("--BUILD", "Build project")
                 self.__PrintInfoAboutOption("--REBUILD", "Clear intermediate and build project")
                 self.__PrintInfoAboutOption("--CLEAR", "Clear intermediate files")
                 self.__PrintInfoAboutOption("--SILENT", "Disable compilation logs")
+                self.__PrintInfoAboutOption("--NO_MULTIPROCESSING", "Disable parallel compiation")
                 sys.exit(0)
             elif LOption == '--version' or LOption == "-v":
                 Logger.Log(PyProjectBuildLibrary.PY_PROJECT_BUILD_VERSION)
                 sys.exit(0)
             elif LOption == '--BuildType=Debug':
                 self.BuildType = EBuildType.DEBUG
-            elif LOption == '---BuildType=Shipping':
+            elif LOption == '--BuildType=Shipping':
                 self.BuildType = EBuildType.SHIPPING
+            elif LOption == '--TargetArch=x86':
+                self.TargetArch = ETargetArch.X86
+            elif LOption == '--TargetArch=x86_64':
+                self.TargetArch = ETargetArch.X86_64
+            elif LOption == '--TargetArch=arm':
+                self.TargetArch = ETargetArch.ARM
+            elif LOption == '--TargetArch=arm_64':
+                self.TargetArch = ETargetArch.ARM_64
             elif LOption == '--BUILD':
-                self.BuildType = EAction.BUILD
+                self.Action = EAction.BUILD
             elif LOption == '--REBUILD':
-                self.BuildType = EAction.REBUILD
+                self.Action = EAction.REBUILD
             elif LOption == '--CLEAR':
-                self.BuildType = EAction.CLEAR
+                self.Action = EAction.CLEAR
             elif LOption == '--SILENT':
                 self.Silent = True
+            elif LOption == '--NO_MULTIPROCESSING':
+                self.UseMultiprocessing = False
             elif LOption[0] != '-':
                 self.ConfigFilePath = LOption
             else:
