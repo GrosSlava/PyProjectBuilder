@@ -4,7 +4,7 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-import FunctionLibrary
+import PyProjectBuildLibrary
 import Logger
 
 
@@ -19,8 +19,9 @@ class FConfigFile:
         self.ConfigFilePath = ConfigFilePath        # absolute path to project config file
         self.IntermediateFolder = "Intermediate"    # relative path to folder for intermediate files
         self.BuildFolder = "Build"                  # relative path to folder for build files
-        self.BuildModules = []                      # array of paths to modules(folders) to build
-        self.Ignore = []                            # array of relative paths to files/folders to ignore
+        self.BuildModules = list[str]()             # array of paths to modules(folders) to build
+        self.Ignore = list[str]()                   # array of relative paths to files/folders to ignore
+        self.AdditionalIncludeDirs = list[str]()    # array of relative paths to dirs for includes search 
         self.IsLibrary = False                      # build as library or not
         self.ResultName = "a"                       # name of building result
     #------------------------------------------------------#
@@ -33,7 +34,7 @@ class FConfigFile:
     @return FConfigFile.
 '''
 def ParseConfigFile(ConfigFilePath: str) -> FConfigFile:
-    if not FunctionLibrary.CheckAbsPath(ConfigFilePath):
+    if not PyProjectBuildLibrary.CheckAbsPath(ConfigFilePath):
         Logger.ErrorLog("Invalid config file path.")
 
     LProjectConfig = FConfigFile(ConfigFilePath)
@@ -55,21 +56,21 @@ def ParseConfigFile(ConfigFilePath: str) -> FConfigFile:
             elif LLeft == "BuildFolder":
                 LProjectConfig.BuildFolder = LRight
             elif LLeft == "IsLibrary":
-                LProjectConfig.IsLibrary = FunctionLibrary.StrToBool(LRight)
+                LProjectConfig.IsLibrary = PyProjectBuildLibrary.StrToBool(LRight)
             elif LLeft == "Modules":
-                LProjectConfig.BuildModules.extend(LRight.split(';'))
+                LProjectConfig.BuildModules.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
             elif LLeft == "Ignore":
-                LProjectConfig.Ignore.extend(LRight.split(';'))
+                LProjectConfig.Ignore.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
+            elif LLeft == "AdditionalInclude":
+                LProjectConfig.AdditionalIncludeDirs.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
             elif LLeft == "ResultName":
                 LProjectConfig.ResultName = LRight
             else:
                 Logger.ErrorLog("Invalid configuration key: '{Key}'.".format(Key = LLeft))
 
-        LIntermediateFolderStripped = LProjectConfig.IntermediateFolder.strip()
-        if LIntermediateFolderStripped == "" or LIntermediateFolderStripped == "." or LIntermediateFolderStripped == "..":
+        if LProjectConfig.IntermediateFolder in ["", ".", ".."]:
             Logger.ErrorLog("Intermediate folder should be set as directory.")
-        LBuildFolderStripped = LProjectConfig.BuildFolder.strip()
-        if LBuildFolderStripped == "" or LBuildFolderStripped == "." or LBuildFolderStripped == "..":
+        if LProjectConfig.BuildFolder in ["", ".", ".."]:
             Logger.ErrorLog("Build folder should be set as directory.")
 
     return LProjectConfig

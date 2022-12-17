@@ -9,7 +9,7 @@ import pathlib
 import glob
 import multiprocessing
 
-import FunctionLibrary
+import PyProjectBuildLibrary
 import Logger
 import ProgramOptions
 import ConfigFileParser
@@ -40,6 +40,15 @@ class FBuildPipeline:
     #------------------------------------------------------#
 
 
+
+    '''
+        Log message with silent check.
+    '''
+    def __Log(self, Message: str) -> None:
+        if self.ProgramOptions.Silent:
+            return
+        Logger.Log(Message)
+    #------------------------------------------------------#
 
     '''
         @return absolute path to project intermediate folder.
@@ -75,44 +84,45 @@ class FBuildPipeline:
     def __IncrementBuildProcess(self, CompiledFile: str) -> None:
         self.ProgessMutex.acquire()
         self.BuildProgress.value += 1
-        Logger.Log("[{Progress}/{Total}] {File}".format(Progress = str(self.BuildProgress.value), Total = str(len(self.FilesToCompile)), File = CompiledFile))
+        self.__Log("[{Progress}/{Total}] {File}".format(Progress = str(self.BuildProgress.value), Total = str(len(self.FilesToCompile)), File = CompiledFile))
         self.ProgessMutex.release()
     #------------------------------------------------------#
 
 
 
+
+    '''
+        Check that file need to be rebuild.
+    '''
     def __CheckFileNeedToBuild(self, FilePath: str) -> bool:
         #TODO
         return True
     #------------------------------------------------------#
     '''
-        Prepere for building. Crete needed folders. Check modules.
+        Prepere for building. Create needed folders. Check modules.
     '''
     def __PrepareForBuild(self) -> None:
-        FunctionLibrary.CreateDirIfNotExist(self.__GetIntermediateFolderPath())
-        FunctionLibrary.CreateDirIfNotExist(os.path.join(self.__GetIntermediateFolderPath(), str(self.ProgramOptions.BuildType)))  
+        PyProjectBuildLibrary.CreateDirIfNotExist(self.__GetIntermediateFolderPath())
+        PyProjectBuildLibrary.CreateDirIfNotExist(os.path.join(self.__GetIntermediateFolderPath(), str(self.ProgramOptions.BuildType)))  
 
         LBuildDir = self.__GetBuildFolderPath()
         if os.path.exists(LBuildDir) and os.path.isdir(LBuildDir):
             shutil.rmtree(LBuildDir)
-        FunctionLibrary.CreateDirIfNotExist(LBuildDir)
-        FunctionLibrary.CreateDirIfNotExist(os.path.join(LBuildDir, str(self.ProgramOptions.BuildType)))  
+        PyProjectBuildLibrary.CreateDirIfNotExist(LBuildDir)
+        PyProjectBuildLibrary.CreateDirIfNotExist(os.path.join(LBuildDir, str(self.ProgramOptions.BuildType)))  
 
         for LModule in self.ConfigFile.BuildModules:
             LModulePath = self.__GetModuleFolderPath(LModule)
-            if not os.path.exists(LModulePath) or not os.path.isdir(LModulePath):
+            if not PyProjectBuildLibrary.CheckDirExists(LModulePath):
                 Logger.WarningLog("Module '{ModulePath}' not exist.".format(ModulePath = LModule))
                 continue
 
-            FunctionLibrary.CreateDirIfNotExist(os.path.join(self.__GetIntermediateFolderPath(), str(self.ProgramOptions.BuildType), LModule))  
+            PyProjectBuildLibrary.CreateDirIfNotExist(os.path.join(self.__GetIntermediateFolderPath(), str(self.ProgramOptions.BuildType), LModule))  
 
             for LFileName in glob.iglob(os.path.join(LModulePath, "**"), recursive = True):
-                if not os.path.isfile(LFileName):
+                if not PyProjectBuildLibrary.IsFileSupported(LFileName) or self.__IsPathIgnored(LFileName) or not self.__CheckFileNeedToBuild(LFileName):
                     continue
-                if pathlib.Path(LFileName).suffix == ".cpp" or pathlib.Path(LFileName).suffix == ".c":
-                    if self.__IsPathIgnored(LFileName) or not self.__CheckFileNeedToBuild(LFileName):
-                        continue
-                    self.FilesToCompile.append(CompileFile.FCompilingFile(self.ProgramOptions.ProjectRoot, self.ConfigFile, LModule, LFileName))
+                self.FilesToCompile.append(CompileFile.FCompilingFile(self.ProgramOptions.ProjectRoot, self.ConfigFile, LModule, LFileName))
     #------------------------------------------------------#
    
     '''
@@ -121,13 +131,13 @@ class FBuildPipeline:
     def __ProcessParallelBuild(self, ProcessIndex: int) -> None:
         for i in range(ProcessIndex, len(self.FilesToCompile), self.CPUCount):
             self.FilesToCompile[i].Compile()
-            self.__IncrementBuildProcess(self.FilesToCompile[i].FilePath + "  " + str(ProcessIndex))
+            self.__IncrementBuildProcess(self.FilesToCompile[i].FilePath)
     #------------------------------------------------------#
     '''
         Do build actions.
     '''
     def __ProcessBuild(self) -> None:
-        Logger.Log("Compiling {CountOfFiles} by {CPUCount} processes...".format(CountOfFiles = str(len(self.FilesToCompile)), CPUCount = str(self.CPUCount)))
+        self.__Log("Compiling {CountOfFiles} actions by {CPUCount} processes...".format(CountOfFiles = str(len(self.FilesToCompile)), CPUCount = str(self.CPUCount)))
         
         LWorkersPool = []
         for i in range(self.CPUCount):
@@ -149,19 +159,25 @@ class FBuildPipeline:
 
 
 
+
     '''
-        Start project build.
+        Start project build internal.
     '''
-    def Build(self) -> None:
+    def __Build(self):
         self.__PrepareForBuild()
         self.__ProcessBuild()
         self.__LinkObjectFiles()
     #------------------------------------------------------#
     '''
+        Start project build.
+    '''
+    def Build(self) -> None:
+        LBuildTime = PyProjectBuildLibrary.ClockFunction(self.__Build)
+        self.__Log("Process finished at {Seconds} seconds.". format(Seconds = str(LBuildTime)))
+    #------------------------------------------------------#
+    '''
         Clear intermediate files.
     '''
     def Clear(self) -> None:
-        LIntermediateDir = self.__GetIntermediateFolderPath()
-        if os.path.exists(LIntermediateDir) and os.path.isdir(LIntermediateDir):
-            shutil.rmtree(LIntermediateDir)
+        PyProjectBuildLibrary.RemoveDirIfExists(self.__GetIntermediateFolderPath())
     #------------------------------------------------------#
