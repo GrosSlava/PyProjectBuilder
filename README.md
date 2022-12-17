@@ -14,6 +14,33 @@ It is easier in use than Makefile or CMake.
 - Write your build configuration in 'PyBuildFile.txt' (see build config)
 - Run python script by ```python3  PyProjectBuilder.py <path to your PyBuildFile.txt>```
 
+
+## Tool options
+
+```--help```                                            ---List all options                               
+```--BuildType=[Debug, Shipping]```                     ---Type of build                                  
+```--BUILD```                                           ---Build project                                  
+```--REBUILD```                                         ---Clear intermediate and build project           
+```--CLEAR```                                           ---Clear intermediate files   
+
 ## Build config options
 
-TODO
+IntermediateFolder = [relative path to intermediate folder (by default 'Intermediate')]
+BuildFolder = [relative path to build folder (by default 'Build')]
+IsLibrary = true (Mark that this project is library, by default false)
+Modules = Source/Module1;Source/Module2 (relative paths to building modules files)
+Modules = Source/Module3 (append array of modules)
+Ignore = Source/Debug.cpp;Source/DebugDir (relative paths to files or folders to ignore)
+ResultName = MyProgram (name of resulting file, be default 'a')
+
+example file PyBuildFile.txt:
+
+```
+ResultName = MyProgram
+IntermediateFolder = Intermediate
+BuildFolder = Build
+IsLibrary = false
+Modules = Source/Module1
+Modules = Source/Module2
+Modules = Source/Module2
+```
