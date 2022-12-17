@@ -18,12 +18,12 @@ It is easier in use than Makefile or CMake.
 
 ## Tool options
 
-```--help```                                            ---List all options
-```--version```                                         ---Print current version
-```--BuildType=[Debug, Shipping]```                     ---Type of build
-```--BUILD```                                           ---Build project
-```--REBUILD```                                         ---Clear intermediate and build project
-```--CLEAR```                                           ---Clear intermediate files
+```--help```                                            ---List all options \
+```--version```                                         ---Print current version \
+```--BuildType=[Debug, Shipping]```                     ---Type of build \
+```--BUILD```                                           ---Build project \
+```--REBUILD```                                         ---Clear intermediate and build project \
+```--CLEAR```                                           ---Clear intermediate files \
 ```--SILENT```                                          ---Disable compilation logs
 
 ## Build config options
@@ -35,7 +35,7 @@ Modules = Source/Module1;Source/Module2 (relative paths to building modules file
 Modules = Source/Module3 (append array of modules) \
 Ignore = Source/Debug.cpp;Source/DebugDir (relative paths to files or folders to ignore) \
 AdditionalInclude = Source/Public (additional relative paths to folders for includes search) \
-ResultName = MyProgram (name of resulting file, be default 'a') \
+ResultName = MyProgram (name of resulting file, be default 'a')
 
 example file PyBuildFile.txt:
 
