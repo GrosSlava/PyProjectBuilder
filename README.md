@@ -90,4 +90,8 @@ EntryPointName =
 # Tell compiler convert warnings into errors.
 # By default = false
 ConvertWarningsToErrors = true
+
+# Tell compiler to show all warnings.
+# By default = false
+EnableAllWarnings = true
 ```

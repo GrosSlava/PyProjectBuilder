@@ -32,6 +32,7 @@ class FCompilingFile:
     def __GetCommandForGCC(self) -> list[str]:
         LSubprocessOptions = list[str]()
         LSubprocessOptions.append("gcc")
+        LSubprocessOptions.append("-std=c11")
         if self.ProgramOptions.TargetArch == ProgramOptions.ETargetArch.X86:
             LSubprocessOptions.append("-m32")
         elif self.ProgramOptions.TargetArch == ProgramOptions.ETargetArch.X86_64:
@@ -43,7 +44,7 @@ class FCompilingFile:
         else:
             return []
 
-        LSubprocessOptions.extend(["-c", "-Wextra", "-Wall"])
+        LSubprocessOptions.extend(["-c"])
         LSubprocessOptions.extend(["-fexec-charset=UTF-8", "-finput-charset=UTF-8"])
         LSubprocessOptions.extend(["-masm=intel"])
 
@@ -56,6 +57,9 @@ class FCompilingFile:
 
         if self.ConfigFile.ConvertWarningsToErrors:
             LSubprocessOptions.append("-Werror")
+
+        if self.ConfigFile.EnableAllWarnings:
+            LSubprocessOptions.extend(["-Wextra", "-Wall"])
 
         for LIncludeDir in self.ConfigFile.AdditionalIncludeDirs:
             LSubprocessOptions.append("-I" + os.path.join(self.ProgramOptions.ProjectRoot, LIncludeDir))
@@ -67,6 +71,7 @@ class FCompilingFile:
     def __GetCommandForGPP(self) -> list[str]:
         LSubprocessOptions = list[str]()
         LSubprocessOptions.append("g++")
+        LSubprocessOptions.append("-std=c++17")
         if self.ProgramOptions.TargetArch == ProgramOptions.ETargetArch.X86:
             LSubprocessOptions.append("-m32")
         elif self.ProgramOptions.TargetArch == ProgramOptions.ETargetArch.X86_64:
@@ -78,7 +83,7 @@ class FCompilingFile:
         else:
             return []
 
-        LSubprocessOptions.extend(["-c", "-Wextra", "-Wall"])
+        LSubprocessOptions.extend(["-c"])
         LSubprocessOptions.extend(["-fexec-charset=UTF-8", "-finput-charset=UTF-8"])
         LSubprocessOptions.extend(["-masm=intel"])
 
@@ -91,6 +96,9 @@ class FCompilingFile:
 
         if self.ConfigFile.ConvertWarningsToErrors:
             LSubprocessOptions.append("-Werror")
+
+        if self.ConfigFile.EnableAllWarnings:
+            LSubprocessOptions.extend(["-Wextra", "-Wall"])
 
         for LIncludeDir in self.ConfigFile.AdditionalIncludeDirs:
             LSubprocessOptions.append("-I" + os.path.join(self.ProgramOptions.ProjectRoot, LIncludeDir))

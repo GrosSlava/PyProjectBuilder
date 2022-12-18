@@ -71,6 +71,13 @@ def CreateDirIfNotExist(Dir: str) -> None:
         os.mkdir(Dir)
 #------------------------------------------------------#
 '''
+    Create a new directory with all subdirs in path only if it does not exist.
+'''
+def CreateDirWithChildren(Dir: str) -> None:
+    if not os.path.exists(Dir):
+        os.makedirs(Dir, exist_ok = True)
+#------------------------------------------------------#
+'''
     Remove directory only if it exists.
 '''
 def RemoveDirIfExists(Dir: str) -> None:

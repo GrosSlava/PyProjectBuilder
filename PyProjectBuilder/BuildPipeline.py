@@ -120,11 +120,8 @@ class FBuildPipeline:
         Prepere for building. Create needed folders. Check modules.
     '''
     def __PrepareForBuild(self) -> None:
-        PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetIntermediateFolderRootPath(self.ProgramOptions, self.ConfigFile))
-        PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetIntermediateFolderPath(self.ProgramOptions, self.ConfigFile))  
-
-        PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetBuildFolderRootPath(self.ProgramOptions, self.ConfigFile))
-        PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetBuildFolderPath(self.ProgramOptions, self.ConfigFile))  
+        PyProjectBuildLibrary.CreateDirWithChildren(FilesPath.GetIntermediateFolderPath(self.ProgramOptions, self.ConfigFile))  
+        PyProjectBuildLibrary.CreateDirWithChildren(FilesPath.GetBuildFolderPath(self.ProgramOptions, self.ConfigFile))  
 
         for LModule in self.ConfigFile.BuildModules:
             LModulePath = FilesPath.GetModuleFolderPath(self.ProgramOptions, LModule)
@@ -132,7 +129,7 @@ class FBuildPipeline:
                 Logger.WarningLog("Module '{ModulePath}' not exist.".format(ModulePath = LModule))
                 continue
 
-            PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetModuleIntermediateFolderPath(self.ProgramOptions, self.ConfigFile, LModule))  
+            PyProjectBuildLibrary.CreateDirWithChildren(FilesPath.GetModuleIntermediateFolderPath(self.ProgramOptions, self.ConfigFile, LModule))  
 
             for LFileName in glob.iglob(os.path.join(LModulePath, "**"), recursive = True):
                 if not PyProjectBuildLibrary.IsFileSupported(LFileName) or self.__IsPathIgnored(LFileName):
