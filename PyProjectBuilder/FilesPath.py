@@ -31,10 +31,22 @@ def GetModuleIntermediateFolderPath(ProgramOptions: ProgramOptions.FProgramOptio
 #------------------------------------------------------#
 
 '''
+    @return absolute path to project build folder root.
+'''
+def GetBuildFolderRootPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile) -> str:
+    return os.path.join(ProgramOptions.ProjectRoot, ConfigFile.BuildFolder)
+#------------------------------------------------------#
+'''
     @return absolute path to project build folder.
 '''
 def GetBuildFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile) -> str:
-    return os.path.join(ProgramOptions.ProjectRoot, ConfigFile.BuildFolder)
+    return os.path.join(GetBuildFolderRootPath(ProgramOptions, ConfigFile), str(ProgramOptions.BuildType))
+#------------------------------------------------------#
+'''
+    @return absolute path to resulting file.
+'''
+def GetBuildResultPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile) -> str:
+    return os.path.join(GetBuildFolderPath(ProgramOptions, ConfigFile), ConfigFile.ResultName)
 #------------------------------------------------------#
 
 '''

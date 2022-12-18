@@ -84,6 +84,8 @@ def ParseConfigFile(ConfigFilePath: str) -> FConfigFile:
             Logger.ErrorLog("Intermediate folder should be set as directory.")
         if LProjectConfig.BuildFolder in ["", ".", ".."]:
             Logger.ErrorLog("Build folder should be set as directory.")
+        if LProjectConfig.ResultName in ["", ".", ".."]:
+            Logger.ErrorLog("Invalid result name.")
 
     return LProjectConfig
 #------------------------------------------------------#

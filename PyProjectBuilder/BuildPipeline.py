@@ -28,6 +28,7 @@ class FBuildPipeline:
         self.ConfigFile = ConfigFile                                    # cached config file info
         self.FilesToCompile = list[CompileFile.FCompilingFile]()        # array of files to build
         self.ObjectFiles = list[str]()                                  # array of paths to object files to link (without platform specific extension)
+        self.UsedExtensions = set[str]()                                # set of all used files extensions in project
     
         self.ProcessesManager = multiprocessing.Manager()
         self.BuildProgress = self.ProcessesManager.Value("BuildProgress", 0)                   
@@ -122,10 +123,10 @@ class FBuildPipeline:
         PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetIntermediateFolderRootPath(self.ProgramOptions, self.ConfigFile))
         PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetIntermediateFolderPath(self.ProgramOptions, self.ConfigFile))  
 
+        PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetBuildFolderRootPath(self.ProgramOptions, self.ConfigFile))
         LBuildDir = FilesPath.GetBuildFolderPath(self.ProgramOptions, self.ConfigFile)
         PyProjectBuildLibrary.RemoveDirIfExists(LBuildDir)
-        PyProjectBuildLibrary.CreateDirIfNotExist(LBuildDir)
-        PyProjectBuildLibrary.CreateDirIfNotExist(os.path.join(LBuildDir, str(self.ProgramOptions.BuildType)))  
+        PyProjectBuildLibrary.CreateDirIfNotExist(LBuildDir)  
 
         for LModule in self.ConfigFile.BuildModules:
             LModulePath = FilesPath.GetModuleFolderPath(self.ProgramOptions, LModule)
@@ -141,6 +142,7 @@ class FBuildPipeline:
                 if self.__CheckFileNeedToBuild(LFileName):
                     self.FilesToCompile.append(CompileFile.FCompilingFile(self.ProgramOptions, self.ConfigFile, LModule, LFileName))
                 self.ObjectFiles.append(FilesPath.GetObjectFilePath(self.ProgramOptions, self.ConfigFile, LModule, PyProjectBuildLibrary.GetFileName(LFileName), ""))
+                self.UsedExtensions.add(PyProjectBuildLibrary.GetFileExtension(LFileName))
     #------------------------------------------------------#
 
     '''
@@ -180,7 +182,7 @@ class FBuildPipeline:
     '''
     def __LinkObjectFiles(self) -> None:
         self.__Log("Linkng...")
-        LLinker = FilesLinker.FLinker(self.ProgramOptions, self.ConfigFile, self.ObjectFiles)
+        LLinker = FilesLinker.FLinker(self.ProgramOptions, self.ConfigFile, self.ObjectFiles, self.UsedExtensions)
         LStdErr = LLinker.Link()
         if len(LStdErr) > 0:
             self.__Log(LStdErr)

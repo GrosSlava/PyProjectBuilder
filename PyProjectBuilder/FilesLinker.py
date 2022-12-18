@@ -20,17 +20,40 @@ import PyProjectBuildLibrary
     Man class to link object files.
 '''
 class FLinker:
-    def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile, ObjectFiles: list[str]):
+    def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile, ObjectFiles: list[str], UsedExtensions: set[str]):
         self.ProgramOptions = ProgramOptions    # cached program options
         self.ConfigFile = ConfigFile            # cached config file
-        self.ObjectFiles = ObjectFiles          # cached array of paths to object files
+        self.ObjectFiles = ObjectFiles          # cached array of absolute paths to object files
+        self.UsedExtensions = UsedExtensions    # cahced set of used extensions in project
     #------------------------------------------------------#
 
 
 
     def __GetCommandForLinux(self) -> list[str]:
         LSubprocessOptions = list[str]()
-        #TODO
+        if "CPP" in self.UsedExtensions or "cpp" in self.UsedExtensions:
+            LSubprocessOptions.append("g++")
+        else:
+            LSubprocessOptions.append("gcc")
+
+        for LLibSearchDir in self.ConfigFile.AdditionalLibsDirs:
+            LSubprocessOptions.append("-L" + LLibSearchDir)
+
+        for LLib in self.ConfigFile.Libs:
+            LSubprocessOptions.append("-l" + LLib)
+
+        if self.ConfigFile.EntryPointName != "":
+            LSubprocessOptions.append("-nostartfiles")
+            LSubprocessOptions.append("-e" + self.ConfigFile.EntryPointName)
+
+        if self.ConfigFile.IsLibrary:
+            LSubprocessOptions.extend(["-shared", "-fPIC"])
+
+        LSubprocessOptions.append("-o" + FilesPath.GetBuildResultPath(self.ProgramOptions, self.ConfigFile))
+
+        for LObjectFile in self.ObjectFiles:
+            LSubprocessOptions.append(LObjectFile + ".o")
+
         return LSubprocessOptions
     #------------------------------------------------------#
     def __GetCommandForWindows(self) -> list[str]:
