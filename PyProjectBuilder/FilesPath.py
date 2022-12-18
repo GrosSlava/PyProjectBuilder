@@ -4,8 +4,11 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
+import platform
+
+import PyProjectBuildLibrary
 import ProgramOptions
-import ConfigFileParser
+import ProjectConfigFile
 
 
 
@@ -14,13 +17,13 @@ import ConfigFileParser
 '''
     @return absolute path to project intermediate folder root.
 '''
-def GetIntermediateFolderRootPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile) -> str:
+def GetIntermediateFolderRootPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile) -> str:
     return os.path.join(ProgramOptions.ProjectRoot, ConfigFile.IntermediateFolder)
 #------------------------------------------------------#
 '''
     @return absolute path to project intermediate folder.
 '''
-def GetIntermediateFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile) -> str:
+def GetIntermediateFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile) -> str:
     if ConfigFile.FlatIntermediate:
         return GetIntermediateFolderRootPath(ProgramOptions, ConfigFile)
     return os.path.join(GetIntermediateFolderRootPath(ProgramOptions, ConfigFile), str(ProgramOptions.BuildType))
@@ -28,20 +31,20 @@ def GetIntermediateFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, Co
 '''
     @return absolute path to project module intermediate folder.
 '''
-def GetModuleIntermediateFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile, ModuleName: str) -> str:
+def GetModuleIntermediateFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile, ModuleName: str) -> str:
     return os.path.join(GetIntermediateFolderPath(ProgramOptions, ConfigFile), ModuleName)
 #------------------------------------------------------#
 
 '''
     @return absolute path to project build folder root.
 '''
-def GetBuildFolderRootPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile) -> str:
+def GetBuildFolderRootPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile) -> str:
     return os.path.join(ProgramOptions.ProjectRoot, ConfigFile.BuildFolder)
 #------------------------------------------------------#
 '''
     @return absolute path to project build folder.
 '''
-def GetBuildFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile) -> str:
+def GetBuildFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile) -> str:
     if ConfigFile.FlatBuild:
         return GetBuildFolderRootPath(ProgramOptions, ConfigFile)
     return os.path.join(GetBuildFolderRootPath(ProgramOptions, ConfigFile), str(ProgramOptions.BuildType))
@@ -49,7 +52,7 @@ def GetBuildFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFil
 '''
     @return absolute path to resulting file.
 '''
-def GetBuildResultPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile) -> str:
+def GetBuildResultPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile) -> str:
     return os.path.join(GetBuildFolderPath(ProgramOptions, ConfigFile), ConfigFile.ResultName)
 #------------------------------------------------------#
 
@@ -63,6 +66,24 @@ def GetModuleFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ModuleRe
 '''
     @return absolute path to compiled object file.
 '''
-def GetObjectFilePath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile, ModuleName: str, FileName: str, Extension: str) -> str:
-    return os.path.join(GetModuleIntermediateFolderPath(ProgramOptions, ConfigFile, ModuleName), FileName + Extension)
+def GetObjectFilePath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile, ModuleName: str, FileName: str, Extension: str) -> str:
+    LFileName = FileName
+    if len(Extension) > 0:
+        if Extension[0] != ".":
+            LFileName += "." + Extension
+        else:
+            LFileName += Extension
+    return os.path.join(GetModuleIntermediateFolderPath(ProgramOptions, ConfigFile, ModuleName), LFileName)
+#------------------------------------------------------#
+'''
+    @return absolute path to compiled object file with platform specific object file extension.
+'''
+def GetPlatformObjectFilePath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile, ModuleName: str, FileName: str):
+    LPlatform  = platform.system()
+    if LPlatform == PyProjectBuildLibrary.LINUX_PLATFORM:
+        return GetObjectFilePath(ProgramOptions, ConfigFile, ModuleName, FileName, "o")
+    elif LPlatform == PyProjectBuildLibrary.WINDOWS_PLATFORM:
+        return GetObjectFilePath(ProgramOptions, ConfigFile, ModuleName, FileName, "obj") 
+    else:
+        return ""
 #------------------------------------------------------#

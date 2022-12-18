@@ -6,7 +6,7 @@ import sys
 import PyProjectBuilder.PyProjectBuildLibrary
 import PyProjectBuilder.Logger
 import PyProjectBuilder.ProgramOptions
-import PyProjectBuilder.ConfigFileParser
+import PyProjectBuilder.ProjectConfigFile
 import PyProjectBuilder.BuildPipeline
 
 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
         PyProjectBuilder.Logger.ErrorLog("Your os is not supported.")
 
     LProgramOptions = PyProjectBuilder.ProgramOptions.FProgramOptions(sys.argv[1:])
-    LProjectConfig = PyProjectBuilder.ConfigFileParser.ParseConfigFile(LProgramOptions.ConfigFilePath)
+    LProjectConfig = PyProjectBuilder.ProjectConfigFile.ParseConfigFile(LProgramOptions.ConfigFilePath)
     
     LBuildPipeline = PyProjectBuilder.BuildPipeline.FBuildPipeline(LProgramOptions, LProjectConfig)
 

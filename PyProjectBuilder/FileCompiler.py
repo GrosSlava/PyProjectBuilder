@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import platform
 import subprocess
 
-import ConfigFileParser
+import ProjectConfigFile
 import ProgramOptions
 import FilesPath
 import PyProjectBuildLibrary
@@ -20,7 +20,7 @@ import PyProjectBuildLibrary
     Source file wrapper to implement it compilation.
 '''
 class FCompilingFile:
-    def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile, ModuleName: str, FilePath: str):
+    def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile, ModuleName: str, FilePath: str):
         self.ProgramOptions = ProgramOptions    # cached program options
         self.ConfigFile = ConfigFile            # cached config file
         self.ModuleName = ModuleName            # cachd file module name
@@ -33,6 +33,7 @@ class FCompilingFile:
         LSubprocessOptions = list[str]()
         LSubprocessOptions.append("gcc")
         LSubprocessOptions.append("-std=c11")
+
         if self.ProgramOptions.TargetArch == ProgramOptions.ETargetArch.X86:
             LSubprocessOptions.append("-m32")
         elif self.ProgramOptions.TargetArch == ProgramOptions.ETargetArch.X86_64:
@@ -64,7 +65,7 @@ class FCompilingFile:
         for LIncludeDir in self.ConfigFile.AdditionalIncludeDirs:
             LSubprocessOptions.append("-I" + os.path.join(self.ProgramOptions.ProjectRoot, LIncludeDir))
 
-        LSubprocessOptions.append("-o" + os.path.join(FilesPath.GetModuleIntermediateFolderPath(self.ProgramOptions, self.ConfigFile, self.ModuleName), PyProjectBuildLibrary.GetFileName(self.FilePath) + ".o"))
+        LSubprocessOptions.append("-o" + FilesPath.GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, self.ModuleName, PyProjectBuildLibrary.GetFileName(self.FilePath)))
         LSubprocessOptions.append(self.FilePath)
         return LSubprocessOptions
     #------------------------------------------------------#
@@ -72,6 +73,7 @@ class FCompilingFile:
         LSubprocessOptions = list[str]()
         LSubprocessOptions.append("g++")
         LSubprocessOptions.append("-std=c++17")
+        
         if self.ProgramOptions.TargetArch == ProgramOptions.ETargetArch.X86:
             LSubprocessOptions.append("-m32")
         elif self.ProgramOptions.TargetArch == ProgramOptions.ETargetArch.X86_64:
@@ -103,7 +105,7 @@ class FCompilingFile:
         for LIncludeDir in self.ConfigFile.AdditionalIncludeDirs:
             LSubprocessOptions.append("-I" + os.path.join(self.ProgramOptions.ProjectRoot, LIncludeDir))
 
-        LSubprocessOptions.append("-o" + FilesPath.GetObjectFilePath(self.ProgramOptions, self.ConfigFile, self.ModuleName, PyProjectBuildLibrary.GetFileName(self.FilePath), ".o"))
+        LSubprocessOptions.append("-o" + FilesPath.GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, self.ModuleName, PyProjectBuildLibrary.GetFileName(self.FilePath)))
         LSubprocessOptions.append(self.FilePath)
         return LSubprocessOptions
     #------------------------------------------------------#

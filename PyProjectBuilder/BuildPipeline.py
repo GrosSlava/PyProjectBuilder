@@ -11,9 +11,10 @@ import PyProjectBuildLibrary
 import FilesPath
 import Logger
 import ProgramOptions
-import ConfigFileParser
-import CompileFile
+import ProjectConfigFile
+import FileCompiler
 import FilesLinker
+import FileDependencies
 
 
 
@@ -23,10 +24,10 @@ import FilesLinker
     Main class to implement project building.
 '''
 class FBuildPipeline:
-    def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile):
+    def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile):
         self.ProgramOptions = ProgramOptions                            # cached program options
         self.ConfigFile = ConfigFile                                    # cached config file info
-        self.FilesToCompile = list[CompileFile.FCompilingFile]()        # array of files to build
+        self.FilesToCompile = list[FileCompiler.FCompilingFile]()       # array of files to build
         self.ObjectFiles = list[str]()                                  # array of paths to object files to link (without platform specific extension)
         self.UsedExtensions = set[str]()                                # set of all used files extensions in project
     
@@ -58,7 +59,7 @@ class FBuildPipeline:
         for i in range(len(self.ConfigFile.AdditionalIncludeDirs)):
             if self.ConfigFile.AdditionalIncludeDirs[i].strip() == "":
                 continue
-            LAdditionalIncludeDirs.append(self.ConfigFile.AdditionalIncludeDirs[i].strip())
+            LAdditionalIncludeDirs.append(os.path.join(self.ProgramOptions.ProjectRoot, self.ConfigFile.AdditionalIncludeDirs[i].strip()))
         self.ConfigFile.AdditionalIncludeDirs = LAdditionalIncludeDirs
 
         LAdditionalLibsDirs = list[str]()
@@ -112,9 +113,17 @@ class FBuildPipeline:
     '''
         Check that file need to be rebuild.
     '''
-    def __CheckFileNeedToBuild(self, FilePath: str) -> bool:
-        #TODO
-        return True
+    def __CheckFileNeedToBuild(self, ModuleName: str, FilePath: str) -> bool:
+        LObjectFilePath = FilesPath.GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, ModuleName, PyProjectBuildLibrary.GetFileName(FilePath))
+        if (not os.path.exists(LObjectFilePath)) or (os.path.getmtime(LObjectFilePath) < os.path.getmtime(FilePath)):
+            return True
+        LFileDependencies = FileDependencies.GetFileDependencies(FilePath, self.ConfigFile.AdditionalIncludeDirs)
+        for LDependency in LFileDependencies:
+            if not os.path.exists(LDependency):
+                continue
+            if os.path.getmtime(LObjectFilePath) < os.path.getmtime(LDependency):
+                return True
+        return False
     #------------------------------------------------------#
     '''
         Prepere for building. Create needed folders. Check modules.
@@ -131,13 +140,13 @@ class FBuildPipeline:
 
             PyProjectBuildLibrary.CreateDirWithChildren(FilesPath.GetModuleIntermediateFolderPath(self.ProgramOptions, self.ConfigFile, LModule))  
 
-            for LFileName in glob.iglob(os.path.join(LModulePath, "**"), recursive = True):
-                if not PyProjectBuildLibrary.IsFileSupported(LFileName) or self.__IsPathIgnored(LFileName):
+            for LFilePath in glob.iglob(os.path.join(LModulePath, "**"), recursive = True):
+                if not PyProjectBuildLibrary.IsFileSupported(LFilePath) or self.__IsPathIgnored(LFilePath):
                     continue
-                if self.__CheckFileNeedToBuild(LFileName):
-                    self.FilesToCompile.append(CompileFile.FCompilingFile(self.ProgramOptions, self.ConfigFile, LModule, LFileName))
-                self.ObjectFiles.append(FilesPath.GetObjectFilePath(self.ProgramOptions, self.ConfigFile, LModule, PyProjectBuildLibrary.GetFileName(LFileName), ""))
-                self.UsedExtensions.add(PyProjectBuildLibrary.GetFileExtension(LFileName))
+                if self.__CheckFileNeedToBuild(LModule, LFilePath):
+                    self.FilesToCompile.append(FileCompiler.FCompilingFile(self.ProgramOptions, self.ConfigFile, LModule, LFilePath))
+                self.ObjectFiles.append(FilesPath.GetObjectFilePath(self.ProgramOptions, self.ConfigFile, LModule, PyProjectBuildLibrary.GetFileName(LFilePath), ""))
+                self.UsedExtensions.add(PyProjectBuildLibrary.GetFileExtension(LFilePath))
     #------------------------------------------------------#
 
     '''

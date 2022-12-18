@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import platform
 import subprocess
 
-import ConfigFileParser
+import ProjectConfigFile
 import ProgramOptions
 import FilesPath
 import PyProjectBuildLibrary
@@ -20,7 +20,7 @@ import PyProjectBuildLibrary
     Man class to link object files.
 '''
 class FLinker:
-    def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile, ObjectFiles: list[str], UsedExtensions: set[str]):
+    def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile, ObjectFiles: list[str], UsedExtensions: set[str]):
         self.ProgramOptions = ProgramOptions    # cached program options
         self.ConfigFile = ConfigFile            # cached config file
         self.ObjectFiles = ObjectFiles          # cached array of absolute paths to object files
@@ -121,18 +121,18 @@ class FLinker:
         LSubprocessOptions = list[str]()
 
         if LPlatform == PyProjectBuildLibrary.LINUX_PLATFORM:
-            if self.ConfigFile.ResultType == ConfigFileParser.EResultType.EXECUTABLE:
+            if self.ConfigFile.ResultType == ProjectConfigFile.EResultType.EXECUTABLE:
                 LSubprocessOptions = self.__GetCommandForLinuxExecutable()
-            elif self.ConfigFile.ResultType == ConfigFileParser.EResultType.DYNAMIC_LIB:
+            elif self.ConfigFile.ResultType == ProjectConfigFile.EResultType.DYNAMIC_LIB:
                 LSubprocessOptions = self.__GetCommandForLinuxDynamic()
-            elif self.ConfigFile.ResultType == ConfigFileParser.EResultType.STATIC_LIB:
+            elif self.ConfigFile.ResultType == ProjectConfigFile.EResultType.STATIC_LIB:
                 LSubprocessOptions = self.__GetCommandForLinuxStatic()
         elif LPlatform == PyProjectBuildLibrary.WINDOWS_PLATFORM:
-            if self.ConfigFile.ResultType == ConfigFileParser.EResultType.EXECUTABLE:
+            if self.ConfigFile.ResultType == ProjectConfigFile.EResultType.EXECUTABLE:
                 LSubprocessOptions = self.__GetCommandForWindowsExecutable()
-            elif self.ConfigFile.ResultType == ConfigFileParser.EResultType.DYNAMIC_LIB:
+            elif self.ConfigFile.ResultType == ProjectConfigFile.EResultType.DYNAMIC_LIB:
                 LSubprocessOptions = self.__GetCommandForWindowsDynamic()
-            elif self.ConfigFile.ResultType == ConfigFileParser.EResultType.STATIC_LIB:
+            elif self.ConfigFile.ResultType == ProjectConfigFile.EResultType.STATIC_LIB:
                 LSubprocessOptions = self.__GetCommandForWindowsStatic()
         else:
             return "Unsupported os."
