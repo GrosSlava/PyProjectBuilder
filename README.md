@@ -74,7 +74,7 @@ AdditionalLibsDirs =
 # By default =
 Libs = m;c;sfml
 
-# Result of result of building.
+# Type of build result.
 # Available values = [Executable, Dynamic, Static]
 # By default = Executable
 ResultType = Executable

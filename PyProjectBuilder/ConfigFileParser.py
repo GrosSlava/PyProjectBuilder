@@ -42,7 +42,7 @@ class FConfigFile:
         self.AdditionalIncludeDirs = list[str]()    # array of relative paths to dirs for includes search 
         self.AdditionalLibsDirs = list[str]()       # array of absolute paths to dirs for libraries search 
         self.Libs = list[str]()                     # array of absolute paths to libs files or its name to link
-        self.ResultType = EResultType.EXECUTABLE    # result of result of building
+        self.ResultType = EResultType.EXECUTABLE    # type of build result
         self.ResultName = "a"                       # name of building result
         self.EntryPointName = ""                    # name of the function that will be the entry point (empty means compiler default)
         self.ConvertWarningsToErrors = False        # tell compiler convert warnings into errors
