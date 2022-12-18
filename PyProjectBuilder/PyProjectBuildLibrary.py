@@ -127,7 +127,7 @@ def CheckDirExists(DirPath: str) -> bool:
     @return Bool by str.
 '''
 def StrToBool(S: str) -> bool:
-    return S in ["1", "yes", "Yes", "YES", "on", "On", "true", "True", "TRUE"]
+    return S in ["1", "yes", "Yes", "YES", "on", "On", "ON", "true", "True", "TRUE"]
 #------------------------------------------------------#
 
 '''

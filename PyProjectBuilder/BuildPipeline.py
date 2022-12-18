@@ -124,9 +124,7 @@ class FBuildPipeline:
         PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetIntermediateFolderPath(self.ProgramOptions, self.ConfigFile))  
 
         PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetBuildFolderRootPath(self.ProgramOptions, self.ConfigFile))
-        LBuildDir = FilesPath.GetBuildFolderPath(self.ProgramOptions, self.ConfigFile)
-        PyProjectBuildLibrary.RemoveDirIfExists(LBuildDir)
-        PyProjectBuildLibrary.CreateDirIfNotExist(LBuildDir)  
+        PyProjectBuildLibrary.CreateDirIfNotExist(FilesPath.GetBuildFolderPath(self.ProgramOptions, self.ConfigFile))  
 
         for LModule in self.ConfigFile.BuildModules:
             LModulePath = FilesPath.GetModuleFolderPath(self.ProgramOptions, LModule)
@@ -181,7 +179,7 @@ class FBuildPipeline:
         Call linker to link compiled object files.
     '''
     def __LinkObjectFiles(self) -> None:
-        self.__Log("Linkng...")
+        self.__Log("Linking...")
         LLinker = FilesLinker.FLinker(self.ProgramOptions, self.ConfigFile, self.ObjectFiles, self.UsedExtensions)
         LStdErr = LLinker.Link()
         if len(LStdErr) > 0:

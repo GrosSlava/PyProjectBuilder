@@ -21,6 +21,8 @@ def GetIntermediateFolderRootPath(ProgramOptions: ProgramOptions.FProgramOptions
     @return absolute path to project intermediate folder.
 '''
 def GetIntermediateFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile) -> str:
+    if ConfigFile.FlatIntermediate:
+        return GetIntermediateFolderRootPath(ProgramOptions, ConfigFile)
     return os.path.join(GetIntermediateFolderRootPath(ProgramOptions, ConfigFile), str(ProgramOptions.BuildType))
 #------------------------------------------------------#
 '''
@@ -40,6 +42,8 @@ def GetBuildFolderRootPath(ProgramOptions: ProgramOptions.FProgramOptions, Confi
     @return absolute path to project build folder.
 '''
 def GetBuildFolderPath(ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ConfigFileParser.FConfigFile) -> str:
+    if ConfigFile.FlatBuild:
+        return GetBuildFolderRootPath(ProgramOptions, ConfigFile)
     return os.path.join(GetBuildFolderRootPath(ProgramOptions, ConfigFile), str(ProgramOptions.BuildType))
 #------------------------------------------------------#
 '''

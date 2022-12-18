@@ -21,7 +21,7 @@ It is easier in use than Makefile or CMake.
 ```--help```                                            ---List all options \
 ```--version```                                         ---Print current version \
 ```--BuildType=[Debug, Shipping]```                     ---Type of build \
-```--TargetArch=[x86, x86_64, armm, arm_64]```          ---Build target architecture \
+```--TargetArch=[x86, x86_64, arm, arm_64]```           ---Build target architecture \
 ```--BUILD```                                           ---Build project \
 ```--REBUILD```                                         ---Clear intermediate and build project \
 ```--CLEAR```                                           ---Clear intermediate files \
@@ -30,29 +30,64 @@ It is easier in use than Makefile or CMake.
 
 ## Build config options
 
-IntermediateFolder = [relative path to intermediate folder (by default 'Intermediate')] \
-BuildFolder = [relative path to build folder (by default 'Build')] \
-IsLibrary = true (Mark that this project is library, by default false) \
-Modules = Source/Module1;Source/Module2 (relative paths to building modules files) \
-Modules = Source/Module3 (append array of modules) \
-Ignore = Source/Debug.cpp;Source/DebugDir (relative paths to files or folders to ignore) \
-AdditionalIncludeDirs = Source/Public (additional relative paths to folders for includes search) \
-AdditionalLibsDirs = /media/user/sda/MyLibs (absolute paths to dirs where compiler can search linkig libs) \
-Libs = SFML (absolute paths to libs to link or it's name) \
-ResultName = MyProgram (name of resulting file, be default 'a') \
-EntryPointName = MyFooMain (name of the function that will be the entry point to the program, by default use compiler defaults) \
-ConvertWarningsToErrors = false (convert all compilation warnings into errors, by default false)
-
-example file PyBuildFile.txt:
+Config options contains flags, arrays and enums.
+- Flags will be redefined at each mention. Available values: True, true, TRUE, yes, YES, On, ON, 1, False, false, FALSE, no, NO, No, 0
+- Arrays will be extended at each mention. Elements should be separated by ';'.
+- Enums should be defined by specific keyword.
 
 ```
-ResultName = MyProgram
+# It is example config file with all options.
+
+# Relative path to folder for intermediate files.
+# By default = Intermediate
 IntermediateFolder = Intermediate
+
+# Put all intermediate files in one folder.
+# By default = false
+FlatIntermediate = false
+
+# Relative path to folder for build files.
+# By default = Build
 BuildFolder = Build
-IsLibrary = false
-Modules = Source/Module1
-Modules = Source/Module2
-Modules = Source/Module2
-AdditionalIncludeDirs = Source/Public;ThirdParty
+
+# Put all build files in one folder.
+# By default = false
+FlatBuild = false
+
+# Array of relative paths to modules(folders) to build.
+# By default =
+Modules = Src/Module1;Src/Module2
+
+# Array of relative paths to files/folders to ignore.
+# By default =
+Ignore =
+
+# Array of relative paths to dirs for includes search.
+# By default =
+AdditionalIncludeDirs =
+
+# Array of absolute paths to dirs for libraries search.
+# By default =
+AdditionalLibsDirs =
+
+# Array of absolute paths to libs files or its name to link.
+# By default =
+Libs = m;c;sfml
+
+# Result of result of building.
+# Available values = [Executable, Dynamic, Static]
+# By default = Executable
+ResultType = Executable
+
+# Name of building result.
+# By default = a
+ResultName = MyProgram.out
+
+# Name of the function that will be the entry point (empty means compiler default).
+# By default =
+EntryPointName =
+
+# Tell compiler convert warnings into errors.
+# By default = false
 ConvertWarningsToErrors = true
 ```
