@@ -116,14 +116,8 @@ class FBuildPipeline:
     def __CheckFileNeedToBuild(self, ModuleName: str, FilePath: str) -> bool:
         LObjectFilePath = FilesPath.GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, ModuleName, PyProjectBuildLibrary.GetFileName(FilePath))
         if (not os.path.exists(LObjectFilePath)) or (os.path.getmtime(LObjectFilePath) < os.path.getmtime(FilePath)):
-            return True
-        LFileDependencies = FileDependencies.GetFileDependencies(FilePath, self.ConfigFile.AdditionalIncludeDirs)
-        for LDependency in LFileDependencies:
-            if not os.path.exists(LDependency):
-                continue
-            if os.path.getmtime(LObjectFilePath) < os.path.getmtime(LDependency):
-                return True
-        return False
+           return True
+        return FileDependencies.HasFileChangedDependency(FilePath, LObjectFilePath, self.ConfigFile.AdditionalIncludeDirs)
     #------------------------------------------------------#
     '''
         Prepere for building. Create needed folders. Check modules.
@@ -141,7 +135,7 @@ class FBuildPipeline:
             PyProjectBuildLibrary.CreateDirWithChildren(FilesPath.GetModuleIntermediateFolderPath(self.ProgramOptions, self.ConfigFile, LModule))  
 
             for LFilePath in glob.iglob(os.path.join(LModulePath, "**"), recursive = True):
-                if not PyProjectBuildLibrary.IsFileSupported(LFilePath) or self.__IsPathIgnored(LFilePath):
+                if (not PyProjectBuildLibrary.IsFileSupported(LFilePath)) or (self.__IsPathIgnored(LFilePath)):
                     continue
                 if self.__CheckFileNeedToBuild(LModule, LFilePath):
                     self.FilesToCompile.append(FileCompiler.FCompilingFile(self.ProgramOptions, self.ConfigFile, LModule, LFilePath))

@@ -103,6 +103,14 @@ def GetFileName(Path: str) -> str:
         return ""
     return pathlib.Path(Path).stem
 #------------------------------------------------------#
+'''
+    Extract path-only from file path.
+'''
+def GetFilePath(Path: str) -> str:
+    if not os.path.isfile(Path):
+        return ""
+    return os.path.dirname(Path)
+#------------------------------------------------------#
 
 
 
@@ -117,13 +125,19 @@ def CheckAbsPath(Path: str) -> bool:
     Check that file extension is supported to be build.
 '''
 def IsFileSupported(FileName: str) -> bool:
-    return os.path.isfile(FileName) and pathlib.Path(FileName).suffix in SUPPORTED_FILES
+    return CheckFileExists(FileName) and pathlib.Path(FileName).suffix in SUPPORTED_FILES
 #------------------------------------------------------#
 '''
     Check that dir exists and it is dir.
 '''
 def CheckDirExists(DirPath: str) -> bool:
     return os.path.exists(DirPath) and os.path.isdir(DirPath)
+#------------------------------------------------------#
+'''
+    Check that file exists and it is file.
+'''
+def CheckFileExists(DirPath: str) -> bool:
+    return os.path.exists(DirPath) and os.path.isfile(DirPath)
 #------------------------------------------------------#
 
 
