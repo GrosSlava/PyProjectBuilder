@@ -9,6 +9,9 @@ import multiprocessing
 
 
 
+'''
+    Mutex for console print.
+'''
 LogMutex = multiprocessing.Lock()
 
 

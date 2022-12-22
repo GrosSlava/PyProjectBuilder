@@ -16,7 +16,7 @@ source $SCRIPT_DIR/venv/bin/activate
 #.......................Requirements.................................#
 
 echo "------------------Tools-----------------"
-sudo apt-get install -y python3.10
+sudo apt-get install -y python3
 sudo apt-get install -y python3-pip
 pip3 install -r $SCRIPT_DIR/Requirements.txt
 echo "----------------------------------------"

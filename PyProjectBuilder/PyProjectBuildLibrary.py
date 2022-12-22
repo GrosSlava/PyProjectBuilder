@@ -39,7 +39,7 @@ SUPPORTED_FILES = [
 '''
     Version of tool.
 '''
-PY_PROJECT_BUILD_VERSION = "0.1.0"
+PY_PROJECT_BUILD_VERSION = "1.1.0"
 
 
 

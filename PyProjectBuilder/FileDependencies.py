@@ -5,6 +5,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 import PyProjectBuildLibrary
+import Logger
 import CppHeaderParser
 
 
@@ -24,7 +25,11 @@ DependenciesCache = dict[str, set[str]]()
 def __GetFileIncludes(FilePath: str) -> list[str]:
     LFileExtension = PyProjectBuildLibrary.GetFileExtension(FilePath)
     if LFileExtension in ["C", "c", "CPP", "cpp", "H", "h", "HPP", "hpp"]:
-        return list(map(lambda X: X[1: -1], CppHeaderParser.CppHeader(FilePath).includes))
+        try:
+            return list(map(lambda X: X[1: -1], CppHeaderParser.CppHeader(FilePath).includes))
+        except Exception as ex:
+            Logger.ErrorLog(ex)
+            return list[str]()
     else:
         return list[str]()
 #------------------------------------------------------#
