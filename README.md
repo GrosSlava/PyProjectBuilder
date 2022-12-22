@@ -10,9 +10,12 @@ It is easier in use than Makefile or CMake.
 - Analyzes files dependencies
 
 ## How to use
+- First time run ```Install``` script
 - Put in the project root directory file 'PyBuildFile.txt'
 - Write your build configuration in 'PyBuildFile.txt' (see build config)
-- Run python script by ```python3  PPBuilder.py <path to your PyBuildFile.txt>```
+- Run python script by ```python3  PPBuilder.py <path to your PyBuildFile.txt>``` if you didn't install tool
+- Run tool by ```PPBuilder <path to your PyBuildFile.txt>``` if it was installed by using ```Install``` script
+- By default (if no path to file) PPBuilder searches 'PyBuildFile.txt' in execution directory
 
 
 
@@ -94,4 +97,8 @@ ConvertWarningsToErrors = true
 # Tell compiler to show all warnings.
 # By default = false
 EnableAllWarnings = true
+
+# Console command to execute after build complete.
+# By default =
+PostBuildAction =
 ```

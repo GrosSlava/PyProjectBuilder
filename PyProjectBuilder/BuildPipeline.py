@@ -196,6 +196,8 @@ class FBuildPipeline:
         self.__PrepareForBuild()
         self.__ProcessBuild()
         self.__LinkObjectFiles()
+        if self.ConfigFile.PostBuildAction != "":
+            os.system(self.ConfigFile.PostBuildAction)
     #------------------------------------------------------#
     '''
         Start project build.

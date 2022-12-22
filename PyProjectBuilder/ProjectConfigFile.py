@@ -47,6 +47,7 @@ class FConfigFile:
         self.EntryPointName = ""                    # name of the function that will be the entry point (empty means compiler default)
         self.ConvertWarningsToErrors = False        # tell compiler convert warnings into errors
         self.EnableAllWarnings = False              # tell compiler to show all warnings
+        self.PostBuildAction = ""                   # system console command to execute after build complete
     #------------------------------------------------------#
 
 
@@ -109,6 +110,8 @@ def ParseConfigFile(ConfigFilePath: str) -> FConfigFile:
                 LProjectConfig.ConvertWarningsToErrors = PyProjectBuildLibrary.StrToBool(LRight)
             elif LLeft == "EnableAllWarnings":
                 LProjectConfig.EnableAllWarnings = PyProjectBuildLibrary.StrToBool(LRight)
+            elif LLeft == "PostBuildAction":
+                LProjectConfig.PostBuildAction = LRight
             else:
                 Logger.ErrorLog("Invalid configuration key: '{Key}'.".format(Key = LLeft))
 

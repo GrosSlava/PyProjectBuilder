@@ -10,6 +10,7 @@
 **env.bak
 **venv.bak
 **__pycache__
+**.egg-info
 
 **.Trash-*
 **.vscode
