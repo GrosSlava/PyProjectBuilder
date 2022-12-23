@@ -41,40 +41,22 @@ class FBuildPipeline:
             self.CPUCount = 1
 
 
-        LBuildModules = list[str]()
-        for i in range(len(self.ConfigFile.BuildModules)):
-            if self.ConfigFile.BuildModules[i].strip() == "":
-                continue
-            LBuildModules.append(self.ConfigFile.BuildModules[i].strip())
-        self.ConfigFile.BuildModules = LBuildModules
+        self.ConfigFile.BuildModules = list(map(lambda x: x.strip(), self.ConfigFile.BuildModules))
+        self.ConfigFile.BuildModules = list(filter(lambda x: x != "", self.ConfigFile.BuildModules))
 
-        LIgnoreFiles = list[str]()
-        for i in range(len(self.ConfigFile.Ignore)):
-            if self.ConfigFile.Ignore[i].strip() == "":
-                continue
-            LIgnoreFiles.append(os.path.join(self.ProgramOptions.ProjectRoot, self.ConfigFile.Ignore[i].strip()))
-        self.ConfigFile.Ignore = LIgnoreFiles
+        self.ConfigFile.Ignore = list(map(lambda x: x.strip(), self.ConfigFile.Ignore))
+        self.ConfigFile.Ignore = list(filter(lambda x: x != "", self.ConfigFile.Ignore))
+        self.ConfigFile.Ignore = list(map(lambda x: os.path.join(self.ProgramOptions.ProjectRoot, x), self.ConfigFile.Ignore))
 
-        LAdditionalIncludeDirs = list[str]()
-        for i in range(len(self.ConfigFile.AdditionalIncludeDirs)):
-            if self.ConfigFile.AdditionalIncludeDirs[i].strip() == "":
-                continue
-            LAdditionalIncludeDirs.append(os.path.join(self.ProgramOptions.ProjectRoot, self.ConfigFile.AdditionalIncludeDirs[i].strip()))
-        self.ConfigFile.AdditionalIncludeDirs = LAdditionalIncludeDirs
+        self.ConfigFile.AdditionalIncludeDirs = list(map(lambda x: x.strip(), self.ConfigFile.AdditionalIncludeDirs))
+        self.ConfigFile.AdditionalIncludeDirs = list(filter(lambda x: x != "", self.ConfigFile.AdditionalIncludeDirs))
+        self.ConfigFile.AdditionalIncludeDirs = list(map(lambda x: os.path.join(self.ProgramOptions.ProjectRoot, x), self.ConfigFile.AdditionalIncludeDirs))
 
-        LAdditionalLibsDirs = list[str]()
-        for i in range(len(self.ConfigFile.AdditionalLibsDirs)):
-            if self.ConfigFile.AdditionalLibsDirs[i].strip() == "":
-                continue
-            LAdditionalLibsDirs.append(self.ConfigFile.AdditionalLibsDirs[i].strip())
-        self.ConfigFile.AdditionalLibsDirs = LAdditionalLibsDirs
+        self.ConfigFile.AdditionalLibsDirs = list(map(lambda x: x.strip(), self.ConfigFile.AdditionalLibsDirs))
+        self.ConfigFile.AdditionalLibsDirs = list(filter(lambda x: x != "", self.ConfigFile.AdditionalLibsDirs))
 
-        LLibs = list[str]()
-        for i in range(len(self.ConfigFile.Libs)):
-            if self.ConfigFile.Libs[i].strip() == "":
-                continue
-            LLibs.append(self.ConfigFile.Libs[i].strip())
-        self.ConfigFile.Libs = LLibs
+        self.ConfigFile.Libs = list(map(lambda x: x.strip(), self.ConfigFile.Libs))
+        self.ConfigFile.Libs = list(filter(lambda x: x != "", self.ConfigFile.Libs))
     #------------------------------------------------------#
 
 
@@ -115,7 +97,7 @@ class FBuildPipeline:
     '''
     def __CheckFileNeedToBuild(self, ModuleName: str, FilePath: str) -> bool:
         LObjectFilePath = FilesPath.GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, ModuleName, PyProjectBuildLibrary.GetFileName(FilePath))
-        if (not os.path.exists(LObjectFilePath)) or (os.path.getmtime(LObjectFilePath) < os.path.getmtime(FilePath)):
+        if (not PyProjectBuildLibrary.CheckFileExists(LObjectFilePath)) or (os.path.getmtime(LObjectFilePath) < os.path.getmtime(FilePath)):
            return True
         return FileDependencies.HasFileChangedDependency(FilePath, LObjectFilePath, self.ConfigFile.AdditionalIncludeDirs)
     #------------------------------------------------------#
@@ -169,8 +151,8 @@ class FBuildPipeline:
                 LWorkersPool.append(p)
                 p.start()
 
-            for i in range(self.CPUCount):
-                LWorkersPool[i].join()
+            for LWorker in LWorkersPool:
+                LWorker.join()
         else:
             self.__ProcessParallelBuild(0)
     #------------------------------------------------------#
@@ -193,7 +175,6 @@ class FBuildPipeline:
         Start project build internal.
     '''
     def __Build(self):
-        self.__PrepareForBuild()
         self.__ProcessBuild()
         self.__LinkObjectFiles()
         if self.ConfigFile.PostBuildAction != "":
@@ -203,8 +184,13 @@ class FBuildPipeline:
         Start project build.
     '''
     def Build(self) -> None:
+        LPrepareTime = PyProjectBuildLibrary.ClockFunction(self.__PrepareForBuild)
+        self.__Log("Build preparing finished.")
         LBuildTime = PyProjectBuildLibrary.ClockFunction(self.__Build)
-        self.__Log("Process finished at {Seconds} seconds.".format(Seconds = str(LBuildTime)))
+
+        self.__Log("Process finished at {Seconds} seconds.".format(Seconds = str(round(LPrepareTime + LBuildTime, 5))))
+        self.__Log("Prepare time: {Seconds} seconds.".format(Seconds = str(round(LPrepareTime, 5))))
+        self.__Log("Build time: {Seconds} seconds.".format(Seconds = str(round(LBuildTime, 5))))
     #------------------------------------------------------#
     '''
         Clear intermediate files.

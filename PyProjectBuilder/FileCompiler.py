@@ -21,10 +21,10 @@ import PyProjectBuildLibrary
 '''
 class FCompilingFile:
     def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile, ModuleName: str, FilePath: str):
-        self.ProgramOptions = ProgramOptions    # cached program options
-        self.ConfigFile = ConfigFile            # cached config file
-        self.ModuleName = ModuleName            # cachd file module name
-        self.FilePath = FilePath                # ceched file absolute path
+        self.ProgramOptions = ProgramOptions        # cached program options
+        self.ConfigFile = ConfigFile                # cached config file
+        self.ModuleName = ModuleName                # cachd file module name
+        self.FilePath = FilePath                    # ceched file absolute path
     #------------------------------------------------------#
 
 

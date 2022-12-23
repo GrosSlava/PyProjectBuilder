@@ -9,7 +9,7 @@ from PyProjectBuilder.PyProjectBuildLibrary import PY_PROJECT_BUILD_VERSION
 
 
 setup(
-    name= 'PPBuild',
+    name= 'PyProjectBuilder',
     version = PY_PROJECT_BUILD_VERSION,
     packages = ["PyProjectBuilder"],
     entry_points = {
