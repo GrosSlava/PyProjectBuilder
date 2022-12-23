@@ -1,11 +1,11 @@
 # Copyright (c) 2022 GrosSlava
 
-import os
-import sys
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from os.path import join as JoinPath
+from os.path import abspath, getmtime
 
-import PyProjectBuildLibrary
-import Logger
+from PyProjectBuilder.Logger import *
+from PyProjectBuilder.PyProjectBuildLibrary import *
+
 import CppHeaderParser
 
 
@@ -23,12 +23,12 @@ DependenciesCache = dict[str, set[str]]()
     Parse file and return array of includes.
 '''
 def __GetFileIncludes(FilePath: str) -> list[str]:
-    LFileExtension = PyProjectBuildLibrary.GetFileExtension(FilePath)
+    LFileExtension = GetFileExtension(FilePath)
     if LFileExtension in ["C", "c", "CPP", "cpp", "H", "h", "HPP", "hpp"]:
         try:
             return list(map(lambda X: X[1: -1], CppHeaderParser.CppHeader(FilePath).includes))
         except Exception as ex:
-            Logger.ErrorLog(ex)
+            ErrorLog(ex)
             return list[str]()
     else:
         return list[str]()
@@ -39,16 +39,16 @@ def __GetFileIncludes(FilePath: str) -> list[str]:
     @return updated DependenciesSet.
 '''
 def __AddDependency(DependenciesSet: set[str], FilePath: str, IncludePath: str, AdditionalIncludeDirs: list[str]) -> set[str]:
-    LIncludeFullPath = os.path.join(PyProjectBuildLibrary.GetFilePath(FilePath), IncludePath)
-    if PyProjectBuildLibrary.CheckFileExists(LIncludeFullPath):
-        LIncludeFullPath = os.path.abspath(LIncludeFullPath)
+    LIncludeFullPath = JoinPath(GetFilePath(FilePath), IncludePath)
+    if CheckFileExists(LIncludeFullPath):
+        LIncludeFullPath = abspath(LIncludeFullPath)
         DependenciesSet.add(LIncludeFullPath)
     else:
         LFound = False
         for LAdditionalSerach in AdditionalIncludeDirs:
-            LIncludeFullPath = os.path.join(LAdditionalSerach, IncludePath)
-            if PyProjectBuildLibrary.CheckFileExists(LIncludeFullPath):    
-                LIncludeFullPath = os.path.abspath(LIncludeFullPath)  
+            LIncludeFullPath = JoinPath(LAdditionalSerach, IncludePath)
+            if CheckFileExists(LIncludeFullPath):    
+                LIncludeFullPath = abspath(LIncludeFullPath)  
                 DependenciesSet.add(LIncludeFullPath)
                 LFound = True
                 break
@@ -67,9 +67,9 @@ def __AddDependency(DependenciesSet: set[str], FilePath: str, IncludePath: str, 
 '''
 def GetFileDependencies(FilePath: str, AdditionalIncludeDirs: list[str]) -> set[str]:
     global DependenciesCache
-    if not PyProjectBuildLibrary.CheckFileExists(FilePath):
+    if not CheckFileExists(FilePath):
         return set[str]()
-    LFilePath = os.path.abspath(FilePath)
+    LFilePath = abspath(FilePath)
     
     if LFilePath in DependenciesCache:
         return DependenciesCache[LFilePath]
@@ -80,14 +80,14 @@ def GetFileDependencies(FilePath: str, AdditionalIncludeDirs: list[str]) -> set[
     LIncludes = __GetFileIncludes(LFilePath)
     for LInclude in LIncludes:
         LDependenciesSet = __AddDependency(LDependenciesSet, LFilePath, LInclude, AdditionalIncludeDirs)  
-   
+
     if LFilePath in LDependenciesSet:
         LDependenciesSet.remove(LFilePath)
 
     for LDependencyFile in LDependenciesSet:
         if LFilePath in DependenciesCache[LDependencyFile]:
             DependenciesCache[LDependencyFile] = DependenciesCache[LDependencyFile].union(LDependenciesSet)
-    
+
     DependenciesCache[LFilePath] = LDependenciesSet
     return LDependenciesSet
 #------------------------------------------------------#
@@ -96,8 +96,5 @@ def GetFileDependencies(FilePath: str, AdditionalIncludeDirs: list[str]) -> set[
 '''
 def HasFileChangedDependency(FilePath: str, ObjectFilePath: str, AdditionalIncludeDirs: list[str]) -> bool:
     LDependencies = GetFileDependencies(FilePath, AdditionalIncludeDirs) 
-    for LDependency in LDependencies:
-        if os.path.getmtime(ObjectFilePath) < os.path.getmtime(LDependency):
-            return True
-    return False
+    return any(getmtime(ObjectFilePath) < getmtime(LDependency) for LDependency in LDependencies)
 #------------------------------------------------------#

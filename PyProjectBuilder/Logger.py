@@ -1,8 +1,6 @@
 # Copyright (c) 2022 GrosSlava
 
-import os
-import sys
-
+from sys import exit
 import multiprocessing
 
 
@@ -20,6 +18,7 @@ LogMutex = multiprocessing.Lock()
     Log message in universal format.
 '''
 def Log(Message: str) -> None:
+    global LogMutex
     LogMutex.acquire()
     print(Message)
     LogMutex.release()
@@ -29,7 +28,7 @@ def Log(Message: str) -> None:
 '''
 def ErrorLog(Message: str) -> None:
     Log("Error: {Message}".format(Message = Message))
-    sys.exit(0)	
+    exit(0)	
 #------------------------------------------------------#
 '''
     Log warning message in universal format.

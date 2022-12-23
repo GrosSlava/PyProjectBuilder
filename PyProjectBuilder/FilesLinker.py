@@ -1,16 +1,12 @@
 # Copyright (c) 2022 GrosSlava
 
-import os
-import sys
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-
-import platform
+from platform import system
 import subprocess
 
-import ProjectConfigFile
-import ProgramOptions
-import FilesPath
-import PyProjectBuildLibrary
+from PyProjectBuilder.PyProjectBuildLibrary import *
+from PyProjectBuilder.FilesPath import *
+from PyProjectBuilder import ProjectConfigFile
+from PyProjectBuilder import ProgramOptions
 
 
 
@@ -24,7 +20,7 @@ class FLinker:
         self.ProgramOptions = ProgramOptions        # cached program options
         self.ConfigFile = ConfigFile                # cached config file
         self.ObjectFiles = ObjectFiles              # cached array of absolute paths to object files
-        self.UsedExtensions = UsedExtensions        # cahced set of used extensions in project
+        self.UsedExtensions = UsedExtensions        # cached set of used extensions in project
     #------------------------------------------------------#
 
 
@@ -36,21 +32,16 @@ class FLinker:
         else:
             LSubprocessOptions.append("gcc")
 
-        for LLibSearchDir in self.ConfigFile.AdditionalLibsDirs:
-            LSubprocessOptions.append("-L" + LLibSearchDir)
-
-        for LLib in self.ConfigFile.Libs:
-            LSubprocessOptions.append("-l" + LLib)
+        LSubprocessOptions.extend(map(lambda LLibSearchDir : "-L" + LLibSearchDir, self.ConfigFile.AdditionalLibsDirs))
+        LSubprocessOptions.extend(map(lambda LLib : "-l" + LLib, self.ConfigFile.Libs))
 
         if self.ConfigFile.EntryPointName != "":
             LSubprocessOptions.append("-nostartfiles")
             LSubprocessOptions.append("-e" + self.ConfigFile.EntryPointName)
 
-        LSubprocessOptions.append("-o" + FilesPath.GetBuildResultPath(self.ProgramOptions, self.ConfigFile))
-
-        for LObjectFile in self.ObjectFiles:
-            LSubprocessOptions.append(LObjectFile + ".o")
-
+        LSubprocessOptions.append("-o" + GetBuildResultPath(self.ProgramOptions, self.ConfigFile))
+        LSubprocessOptions.extend(map(lambda LObjectFile : LObjectFile + ".o", self.ObjectFiles))
+           
         return LSubprocessOptions
     #------------------------------------------------------#
     def __GetCommandForLinuxDynamic(self) -> list[str]:
@@ -60,11 +51,8 @@ class FLinker:
         else:
             LSubprocessOptions.append("gcc")
 
-        for LLibSearchDir in self.ConfigFile.AdditionalLibsDirs:
-            LSubprocessOptions.append("-L" + LLibSearchDir)
-
-        for LLib in self.ConfigFile.Libs:
-            LSubprocessOptions.append("-l" + LLib)
+        LSubprocessOptions.extend(map(lambda LLibSearchDir : "-L" + LLibSearchDir, self.ConfigFile.AdditionalLibsDirs))
+        LSubprocessOptions.extend(map(lambda LLib : "-l" + LLib, self.ConfigFile.Libs))
 
         if self.ConfigFile.EntryPointName != "":
             LSubprocessOptions.append("-nostartfiles")
@@ -72,27 +60,22 @@ class FLinker:
 
         LSubprocessOptions.extend(["-shared", "-fPIC"])
 
-        LSubprocessOptions.append("-o" + FilesPath.GetBuildResultPath(self.ProgramOptions, self.ConfigFile))
-
-        for LObjectFile in self.ObjectFiles:
-            LSubprocessOptions.append(LObjectFile + ".o")
+        LSubprocessOptions.append("-o" + GetBuildResultPath(self.ProgramOptions, self.ConfigFile))
+        LSubprocessOptions.extend(map(lambda LObjectFile : LObjectFile + ".o", self.ObjectFiles))
 
         return LSubprocessOptions
     #------------------------------------------------------#
     def __GetCommandForLinuxStatic(self) -> list[str]:
         LSubprocessOptions = list[str]()
-        
         LSubprocessOptions.extend(["ar", "rcs"])
 
-        LSubprocessOptions.append(FilesPath.GetBuildResultPath(self.ProgramOptions, self.ConfigFile))
-
-        for LObjectFile in self.ObjectFiles:
-            LSubprocessOptions.append(LObjectFile + ".o")
+        LSubprocessOptions.append(GetBuildResultPath(self.ProgramOptions, self.ConfigFile))
+        LSubprocessOptions.extend(map(lambda LObjectFile : LObjectFile + ".o", self.ObjectFiles))
 
         return LSubprocessOptions
     #------------------------------------------------------#
-  
-  
+
+ 
     def __GetCommandForWindowsExecutable(self) -> list[str]:
         LSubprocessOptions = list[str]()
         #TODO
@@ -117,17 +100,17 @@ class FLinker:
         @return stderr string.
     '''
     def Link(self) -> str:
-        LPlatform  = platform.system()
+        LPlatform  = system()
         LSubprocessOptions = list[str]()
 
-        if LPlatform == PyProjectBuildLibrary.LINUX_PLATFORM:
+        if LPlatform == LINUX_PLATFORM:
             if self.ConfigFile.ResultType == ProjectConfigFile.EResultType.EXECUTABLE:
                 LSubprocessOptions = self.__GetCommandForLinuxExecutable()
             elif self.ConfigFile.ResultType == ProjectConfigFile.EResultType.DYNAMIC_LIB:
                 LSubprocessOptions = self.__GetCommandForLinuxDynamic()
             elif self.ConfigFile.ResultType == ProjectConfigFile.EResultType.STATIC_LIB:
                 LSubprocessOptions = self.__GetCommandForLinuxStatic()
-        elif LPlatform == PyProjectBuildLibrary.WINDOWS_PLATFORM:
+        elif LPlatform == WINDOWS_PLATFORM:
             if self.ConfigFile.ResultType == ProjectConfigFile.EResultType.EXECUTABLE:
                 LSubprocessOptions = self.__GetCommandForWindowsExecutable()
             elif self.ConfigFile.ResultType == ProjectConfigFile.EResultType.DYNAMIC_LIB:

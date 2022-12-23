@@ -1,13 +1,11 @@
 # Copyright (c) 2022 GrosSlava
 
 import os
-import sys
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from sys import exit
+from enum import IntEnum
 
-import enum
-
-import Logger
-import PyProjectBuildLibrary
+from PyProjectBuilder.Logger import *
+from PyProjectBuilder.PyProjectBuildLibrary import PY_PROJECT_BUILD_VERSION
 
 
 
@@ -16,7 +14,7 @@ import PyProjectBuildLibrary
 '''
     Project build type.
 '''
-class EBuildType(enum.IntEnum):
+class EBuildType(IntEnum):
     DEBUG = 1,          # Build in debug mode
     SHIPPING = 2        # Build in release mode
 
@@ -27,7 +25,7 @@ class EBuildType(enum.IntEnum):
 '''
     Target architecture.
 '''
-class ETargetArch(enum.IntEnum):
+class ETargetArch(IntEnum):
     X86 = 1,            # Build for x86
     X86_64 = 2,         # Build for x86-64
     ARM = 3,            # build for arm
@@ -40,7 +38,7 @@ class ETargetArch(enum.IntEnum):
 '''
     Tool action.
 '''
-class EAction(enum.IntEnum):
+class EAction(IntEnum):
     BUILD = 1,          # Build project
     REBUILD = 2,        # Clear intermediate and build project
     CLEAR = 3           # Clear intermediate files
@@ -68,7 +66,7 @@ class FProgramOptions:
         for LArg in argv:
             LOption = LArg.strip() 
             if len(LOption) < 2:
-                Logger.ErrorLog("Invalid option '{Option}'.".format(Option = LOption))
+                ErrorLog("Invalid option '{Option}'.".format(Option = LOption))
 
             if LOption == "--help" or LOption == "-h":
                 self.__PrintInfoAboutOption("--help", "List all options")
@@ -80,10 +78,10 @@ class FProgramOptions:
                 self.__PrintInfoAboutOption("--CLEAR", "Clear intermediate files")
                 self.__PrintInfoAboutOption("--SILENT", "Disable compilation logs")
                 self.__PrintInfoAboutOption("--NO_MULTIPROCESSING", "Disable parallel compilation")
-                sys.exit(0)
+                exit(0)
             elif LOption == '--version' or LOption == "-v":
-                Logger.Log(PyProjectBuildLibrary.PY_PROJECT_BUILD_VERSION)
-                sys.exit(0)
+                Log(PY_PROJECT_BUILD_VERSION)
+                exit(0)
             elif LOption == '--BuildType=Debug':
                 self.BuildType = EBuildType.DEBUG
             elif LOption == '--BuildType=Shipping':
@@ -109,12 +107,12 @@ class FProgramOptions:
             elif LOption[0] != '-':
                 self.ConfigFilePath = LOption
             else:
-                Logger.ErrorLog("Invalid option '{Option}'.".format(Option = LOption))
+                ErrorLog("Invalid option '{Option}'.".format(Option = LOption))
 
         self.ProjectRoot = os.path.dirname(self.ConfigFilePath)
     #------------------------------------------------------#
 
 
     def __PrintInfoAboutOption(self, Option: str, Description: str) -> None:
-        Logger.Log(f"{Option : <50}{'---' + Description : <50}")
+        Log(f"{Option : <50}{'---' + Description : <50}")
     #------------------------------------------------------#

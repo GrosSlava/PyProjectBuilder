@@ -1,20 +1,18 @@
 # Copyright (c) 2022 GrosSlava
 
-import os
-import sys
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-
-import glob
+from os import system
+from os.path import getmtime, join as JoinPath
+from glob import iglob
 import multiprocessing
 
-import PyProjectBuildLibrary
-import FilesPath
-import Logger
-import ProgramOptions
-import ProjectConfigFile
-import FileCompiler
-import FilesLinker
-import FileDependencies
+from PyProjectBuilder.PyProjectBuildLibrary import *
+from PyProjectBuilder.FilesPath import *
+from PyProjectBuilder.Logger import *
+from PyProjectBuilder.FileDependencies import HasFileChangedDependency
+from PyProjectBuilder import ProgramOptions
+from PyProjectBuilder import ProjectConfigFile
+from PyProjectBuilder import FileCompiler
+from PyProjectBuilder import FilesLinker
 
 
 
@@ -46,11 +44,11 @@ class FBuildPipeline:
 
         self.ConfigFile.Ignore = list(map(lambda x: x.strip(), self.ConfigFile.Ignore))
         self.ConfigFile.Ignore = list(filter(lambda x: x != "", self.ConfigFile.Ignore))
-        self.ConfigFile.Ignore = list(map(lambda x: os.path.join(self.ProgramOptions.ProjectRoot, x), self.ConfigFile.Ignore))
+        self.ConfigFile.Ignore = list(map(lambda x: JoinPath(self.ProgramOptions.ProjectRoot, x), self.ConfigFile.Ignore))
 
         self.ConfigFile.AdditionalIncludeDirs = list(map(lambda x: x.strip(), self.ConfigFile.AdditionalIncludeDirs))
         self.ConfigFile.AdditionalIncludeDirs = list(filter(lambda x: x != "", self.ConfigFile.AdditionalIncludeDirs))
-        self.ConfigFile.AdditionalIncludeDirs = list(map(lambda x: os.path.join(self.ProgramOptions.ProjectRoot, x), self.ConfigFile.AdditionalIncludeDirs))
+        self.ConfigFile.AdditionalIncludeDirs = list(map(lambda x: JoinPath(self.ProgramOptions.ProjectRoot, x), self.ConfigFile.AdditionalIncludeDirs))
 
         self.ConfigFile.AdditionalLibsDirs = list(map(lambda x: x.strip(), self.ConfigFile.AdditionalLibsDirs))
         self.ConfigFile.AdditionalLibsDirs = list(filter(lambda x: x != "", self.ConfigFile.AdditionalLibsDirs))
@@ -67,17 +65,14 @@ class FBuildPipeline:
     def __Log(self, Message: str) -> None:
         if self.ProgramOptions.Silent:
             return
-        Logger.Log(Message)
+        Log(Message)
     #------------------------------------------------------#
 
     '''
         Check that path is ignored by any from ingore array.
     '''
     def __IsPathIgnored(self, FilePath: str) -> bool:
-        for LIgnorePath in self.ConfigFile.Ignore:
-            if FilePath.startswith(LIgnorePath) or LIgnorePath == FilePath:
-                return True
-        return False
+        return any(FilePath.startswith(LIgnorePath) or LIgnorePath == FilePath for LIgnorePath in self.ConfigFile.Ignore)
     #------------------------------------------------------#
 
     '''
@@ -96,33 +91,33 @@ class FBuildPipeline:
         Check that file need to be rebuild.
     '''
     def __CheckFileNeedToBuild(self, ModuleName: str, FilePath: str) -> bool:
-        LObjectFilePath = FilesPath.GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, ModuleName, PyProjectBuildLibrary.GetFileName(FilePath))
-        if (not PyProjectBuildLibrary.CheckFileExists(LObjectFilePath)) or (os.path.getmtime(LObjectFilePath) < os.path.getmtime(FilePath)):
+        LObjectFilePath = GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, ModuleName, GetFileName(FilePath))
+        if (not CheckFileExists(LObjectFilePath)) or (getmtime(LObjectFilePath) < getmtime(FilePath)):
            return True
-        return FileDependencies.HasFileChangedDependency(FilePath, LObjectFilePath, self.ConfigFile.AdditionalIncludeDirs)
+        return HasFileChangedDependency(FilePath, LObjectFilePath, self.ConfigFile.AdditionalIncludeDirs)
     #------------------------------------------------------#
     '''
         Prepere for building. Create needed folders. Check modules.
     '''
     def __PrepareForBuild(self) -> None:
-        PyProjectBuildLibrary.CreateDirWithChildren(FilesPath.GetIntermediateFolderPath(self.ProgramOptions, self.ConfigFile))  
-        PyProjectBuildLibrary.CreateDirWithChildren(FilesPath.GetBuildFolderPath(self.ProgramOptions, self.ConfigFile))  
+        CreateDirWithChildren(GetIntermediateFolderPath(self.ProgramOptions, self.ConfigFile))  
+        CreateDirWithChildren(GetBuildFolderPath(self.ProgramOptions, self.ConfigFile))  
 
         for LModule in self.ConfigFile.BuildModules:
-            LModulePath = FilesPath.GetModuleFolderPath(self.ProgramOptions, LModule)
-            if not PyProjectBuildLibrary.CheckDirExists(LModulePath):
-                Logger.WarningLog("Module '{ModulePath}' not exist.".format(ModulePath = LModule))
+            LModulePath = GetModuleFolderPath(self.ProgramOptions, LModule)
+            if not CheckDirExists(LModulePath):
+                WarningLog("Module '{ModulePath}' not exist.".format(ModulePath = LModule))
                 continue
 
-            PyProjectBuildLibrary.CreateDirWithChildren(FilesPath.GetModuleIntermediateFolderPath(self.ProgramOptions, self.ConfigFile, LModule))  
+            CreateDirWithChildren(GetModuleIntermediateFolderPath(self.ProgramOptions, self.ConfigFile, LModule))  
 
-            for LFilePath in glob.iglob(os.path.join(LModulePath, "**"), recursive = True):
-                if (not PyProjectBuildLibrary.IsFileSupported(LFilePath)) or (self.__IsPathIgnored(LFilePath)):
+            for LFilePath in iglob(JoinPath(LModulePath, "**"), recursive = True):
+                if (not IsFileSupported(LFilePath)) or (self.__IsPathIgnored(LFilePath)):
                     continue
                 if self.__CheckFileNeedToBuild(LModule, LFilePath):
                     self.FilesToCompile.append(FileCompiler.FCompilingFile(self.ProgramOptions, self.ConfigFile, LModule, LFilePath))
-                self.ObjectFiles.append(FilesPath.GetObjectFilePath(self.ProgramOptions, self.ConfigFile, LModule, PyProjectBuildLibrary.GetFileName(LFilePath), ""))
-                self.UsedExtensions.add(PyProjectBuildLibrary.GetFileExtension(LFilePath))
+                self.ObjectFiles.append(GetObjectFilePath(self.ProgramOptions, self.ConfigFile, LModule, GetFileName(LFilePath), ""))
+                self.UsedExtensions.add(GetFileExtension(LFilePath))
     #------------------------------------------------------#
 
     '''
@@ -174,19 +169,20 @@ class FBuildPipeline:
     '''
         Start project build internal.
     '''
-    def __Build(self):
+    def __Build(self) -> None:
         self.__ProcessBuild()
-        self.__LinkObjectFiles()
+        if self.ConfigFile.ResultType != ProjectConfigFile.EResultType.NO_LINK:
+            self.__LinkObjectFiles()
         if self.ConfigFile.PostBuildAction != "":
-            os.system(self.ConfigFile.PostBuildAction)
+            system(self.ConfigFile.PostBuildAction)
     #------------------------------------------------------#
     '''
         Start project build.
     '''
     def Build(self) -> None:
-        LPrepareTime = PyProjectBuildLibrary.ClockFunction(self.__PrepareForBuild)
+        LPrepareTime = ClockFunction(self.__PrepareForBuild)
         self.__Log("Build preparing finished.")
-        LBuildTime = PyProjectBuildLibrary.ClockFunction(self.__Build)
+        LBuildTime = ClockFunction(self.__Build)
 
         self.__Log("Process finished at {Seconds} seconds.".format(Seconds = str(round(LPrepareTime + LBuildTime, 5))))
         self.__Log("Prepare time: {Seconds} seconds.".format(Seconds = str(round(LPrepareTime, 5))))
@@ -196,5 +192,5 @@ class FBuildPipeline:
         Clear intermediate files.
     '''
     def Clear(self) -> None:
-        PyProjectBuildLibrary.RemoveDirIfExists(FilesPath.GetIntermediateFolderPath(self.ProgramOptions, self.ConfigFile))
+        RemoveDirIfExists(GetIntermediateFolderPath(self.ProgramOptions, self.ConfigFile))
     #------------------------------------------------------#
