@@ -21,10 +21,10 @@ import PyProjectBuildLibrary
 '''
 class FLinker:
     def __init__(self, ProgramOptions: ProgramOptions.FProgramOptions, ConfigFile: ProjectConfigFile.FConfigFile, ObjectFiles: list[str], UsedExtensions: set[str]):
-        self.ProgramOptions = ProgramOptions    # cached program options
-        self.ConfigFile = ConfigFile            # cached config file
-        self.ObjectFiles = ObjectFiles          # cached array of absolute paths to object files
-        self.UsedExtensions = UsedExtensions    # cahced set of used extensions in project
+        self.ProgramOptions = ProgramOptions        # cached program options
+        self.ConfigFile = ConfigFile                # cached config file
+        self.ObjectFiles = ObjectFiles              # cached array of absolute paths to object files
+        self.UsedExtensions = UsedExtensions        # cahced set of used extensions in project
     #------------------------------------------------------#
 
 

@@ -30,16 +30,16 @@ SUPPORTED_BUILD_PLATFORMS = [
     Suffixes of available for build files.
 '''
 SUPPORTED_FILES = [ 
-    ".c", 
-    ".C",
-    ".cpp",
-    ".CPP"
+    "c", 
+    "C",
+    "cpp",
+    "CPP"
 ]
 
 '''
     Version of tool.
 '''
-PY_PROJECT_BUILD_VERSION = "1.1.0"
+PY_PROJECT_BUILD_VERSION = "1.1.1"
 
 
 
@@ -81,15 +81,18 @@ def CreateDirWithChildren(Dir: str) -> None:
     Remove directory only if it exists.
 '''
 def RemoveDirIfExists(Dir: str) -> None:
-    if os.path.exists(Dir) and os.path.isdir(Dir):
+    if CheckDirExists(Dir):
         shutil.rmtree(Dir)
 #------------------------------------------------------#
+
+
+
+
 '''
     Extract extension from file path.
+    @return file extension without leading dot.
 '''
 def GetFileExtension(Path: str) -> str:
-    if not os.path.isfile(Path):
-        return ""
     LSuffix = pathlib.Path(Path).suffix
     if len(LSuffix) < 2:
         return ""
@@ -97,18 +100,16 @@ def GetFileExtension(Path: str) -> str:
 #------------------------------------------------------#
 '''
     Extract file name from file path.
+    @return file name only.
 '''
 def GetFileName(Path: str) -> str:
-    if not os.path.isfile(Path):
-        return ""
     return pathlib.Path(Path).stem
 #------------------------------------------------------#
 '''
     Extract path-only from file path.
+    @return file path only without file name at end. 
 '''
 def GetFilePath(Path: str) -> str:
-    if not os.path.isfile(Path):
-        return ""
     return os.path.dirname(Path)
 #------------------------------------------------------#
 
@@ -125,7 +126,7 @@ def CheckAbsPath(Path: str) -> bool:
     Check that file extension is supported to be build.
 '''
 def IsFileSupported(FileName: str) -> bool:
-    return CheckFileExists(FileName) and pathlib.Path(FileName).suffix in SUPPORTED_FILES
+    return CheckFileExists(FileName) and GetFileExtension(FileName) in SUPPORTED_FILES
 #------------------------------------------------------#
 '''
     Check that dir exists and it is dir.

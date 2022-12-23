@@ -33,6 +33,8 @@ def Run():
     elif LProgramOptions.Action == ProgramOptions.EAction.REBUILD:
         LBuildPipeline.Clear()
         LBuildPipeline.Build()
+    else:
+        Logger.ErrorLog("Invalid builder action.")
 #------------------------------------------------------#
 
 

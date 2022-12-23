@@ -57,6 +57,10 @@ def __AddDependency(DependenciesSet: set[str], FilePath: str, IncludePath: str, 
     return DependenciesSet.union(GetFileDependencies(LIncludeFullPath, AdditionalIncludeDirs))
 #------------------------------------------------------#
 
+
+
+
+
 '''
     Extract all dependencies from source file.
     @return array of absolute paths to dependencies.
@@ -87,7 +91,6 @@ def GetFileDependencies(FilePath: str, AdditionalIncludeDirs: list[str]) -> set[
     DependenciesCache[LFilePath] = LDependenciesSet
     return LDependenciesSet
 #------------------------------------------------------#
-
 '''
     @return true if file contains one or more modified dependency files.
 '''
@@ -98,4 +101,3 @@ def HasFileChangedDependency(FilePath: str, ObjectFilePath: str, AdditionalInclu
             return True
     return False
 #------------------------------------------------------#
-
