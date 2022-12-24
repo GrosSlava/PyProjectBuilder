@@ -1,13 +1,9 @@
 # Copyright (c) 2022 GrosSlava
 
-import os
-import sys
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from enum import IntEnum
 
-import enum
-
-import PyProjectBuildLibrary
-import Logger
+from PyProjectBuilder.Logger import *
+from PyProjectBuilder.PyProjectBuildLibrary import *
 
 
 
@@ -16,7 +12,8 @@ import Logger
 '''
     Project build result type.
 '''
-class EResultType(enum.IntEnum):
+class EResultType(IntEnum):
+    NO_LINK = 0,            # Build without linking stage
     EXECUTABLE = 1,         # Build as executable
     STATIC_LIB = 2,         # Build as static library
     DYNAMIC_LIB = 3         # Build as dynamic library
@@ -58,8 +55,8 @@ class FConfigFile:
     @return FConfigFile.
 '''
 def ParseConfigFile(ConfigFilePath: str) -> FConfigFile:
-    if not PyProjectBuildLibrary.CheckAbsPath(ConfigFilePath):
-        Logger.ErrorLog("Invalid config file path.")
+    if not CheckAbsPath(ConfigFilePath):
+        ErrorLog("Invalid config file path.")
 
     LProjectConfig = FConfigFile(ConfigFilePath)
     with open(ConfigFilePath, "r", encoding = 'utf-8') as ProjectConfigFile:
@@ -78,49 +75,51 @@ def ParseConfigFile(ConfigFilePath: str) -> FConfigFile:
             if LLeft == "IntermediateFolder":
                 LProjectConfig.IntermediateFolder = LRight
             elif LLeft == "FlatIntermediate":
-                LProjectConfig.FlatIntermediate = PyProjectBuildLibrary.StrToBool(LRight)
+                LProjectConfig.FlatIntermediate = StrToBool(LRight)
             elif LLeft == "BuildFolder":
                 LProjectConfig.BuildFolder = LRight
             elif LLeft == "FlatBuild":
-                LProjectConfig.FlatBuild = PyProjectBuildLibrary.StrToBool(LRight)
+                LProjectConfig.FlatBuild = StrToBool(LRight)
             elif LLeft == "Modules":
-                LProjectConfig.BuildModules.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
+                LProjectConfig.BuildModules.extend(SplitAndStrip(LRight, ';'))
             elif LLeft == "Ignore":
-                LProjectConfig.Ignore.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
+                LProjectConfig.Ignore.extend(SplitAndStrip(LRight, ';'))
             elif LLeft == "AdditionalIncludeDirs":
-                LProjectConfig.AdditionalIncludeDirs.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
+                LProjectConfig.AdditionalIncludeDirs.extend(SplitAndStrip(LRight, ';'))
             elif LLeft == "AdditionalLibsDirs":
-                LProjectConfig.AdditionalLibsDirs.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
+                LProjectConfig.AdditionalLibsDirs.extend(SplitAndStrip(LRight, ';'))
             elif LLeft == "Libs":
-                LProjectConfig.Libs.extend(PyProjectBuildLibrary.SplitAndStrip(LRight, ';'))
+                LProjectConfig.Libs.extend(SplitAndStrip(LRight, ';'))
             elif LLeft == "ResultType":
-                if LRight in ["Executable", "EXECUTABLE", "executable", "exe"]:
+                if LRight in ["NoLink", "NO_LINK", "no_link"]:
+                    LProjectConfig.ResultType = EResultType.NO_LINK
+                elif LRight in ["Executable", "EXECUTABLE", "executable", "exe"]:
                     LProjectConfig.ResultType = EResultType.EXECUTABLE
                 elif LRight in ["StaticLib", "STATIC_LIB", "Static", "STATIC", "static"]:
                     LProjectConfig.ResultType = EResultType.STATIC_LIB
                 elif LRight in ["DynamicLib", "DYNAMIC_LIB", "Dynamic", "DYNAMIC", "dynamic"]:
                     LProjectConfig.ResultType = EResultType.DYNAMIC_LIB
                 else:
-                    Logger.ErrorLog("Invalid configuration value: '{Value}'.".format(Value = LRight))
+                    ErrorLog("Invalid configuration value: '{Value}'.".format(Value = LRight))
             elif LLeft == "ResultName":
                 LProjectConfig.ResultName = LRight
             elif LLeft == "EntryPointName":
                 LProjectConfig.EntryPointName = LRight
             elif LLeft == "ConvertWarningsToErrors":
-                LProjectConfig.ConvertWarningsToErrors = PyProjectBuildLibrary.StrToBool(LRight)
+                LProjectConfig.ConvertWarningsToErrors = StrToBool(LRight)
             elif LLeft == "EnableAllWarnings":
-                LProjectConfig.EnableAllWarnings = PyProjectBuildLibrary.StrToBool(LRight)
+                LProjectConfig.EnableAllWarnings = StrToBool(LRight)
             elif LLeft == "PostBuildAction":
                 LProjectConfig.PostBuildAction = LRight
             else:
-                Logger.ErrorLog("Invalid configuration key: '{Key}'.".format(Key = LLeft))
+                ErrorLog("Invalid configuration key: '{Key}'.".format(Key = LLeft))
 
         if LProjectConfig.IntermediateFolder in ["", ".", ".."]:
-            Logger.ErrorLog("Intermediate folder should be set as directory.")
+            ErrorLog("Intermediate folder should be set as directory.")
         if LProjectConfig.BuildFolder in ["", ".", ".."]:
-            Logger.ErrorLog("Build folder should be set as directory.")
+            ErrorLog("Build folder should be set as directory.")
         if LProjectConfig.ResultName in ["", ".", ".."]:
-            Logger.ErrorLog("Invalid result name.")
+            ErrorLog("Invalid result name.")
 
     return LProjectConfig
 #------------------------------------------------------#

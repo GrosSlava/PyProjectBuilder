@@ -1,16 +1,12 @@
 # Copyright (c) 2022 GrosSlava
 
-import os
-import sys
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-
-import platform
+from platform import system
 import subprocess
 
-import ProjectConfigFile
-import ProgramOptions
-import FilesPath
-import PyProjectBuildLibrary
+from PyProjectBuilder.PyProjectBuildLibrary import *
+from PyProjectBuilder.FilesPath import *
+from PyProjectBuilder import ProjectConfigFile
+from PyProjectBuilder import ProgramOptions
 
 
 
@@ -31,8 +27,7 @@ class FCompilingFile:
 
     def __GetCommandForGCC(self) -> list[str]:
         LSubprocessOptions = list[str]()
-        LSubprocessOptions.append("gcc")
-        LSubprocessOptions.append("-std=c11")
+        LSubprocessOptions.extend(["gcc", "-std=c11", "-c", "-fexec-charset=UTF-8", "-finput-charset=UTF-8", "-masm=intel"])
 
         if self.ProgramOptions.TargetArch == ProgramOptions.ETargetArch.X86:
             LSubprocessOptions.append("-m32")
@@ -44,10 +39,6 @@ class FCompilingFile:
             LSubprocessOptions.append("-marm")
         else:
             return []
-
-        LSubprocessOptions.extend(["-c"])
-        LSubprocessOptions.extend(["-fexec-charset=UTF-8", "-finput-charset=UTF-8"])
-        LSubprocessOptions.extend(["-masm=intel"])
 
         if self.ProgramOptions.BuildType == ProgramOptions.EBuildType.DEBUG:
             LSubprocessOptions.extend(["-O0", "-g"])
@@ -62,17 +53,16 @@ class FCompilingFile:
         if self.ConfigFile.EnableAllWarnings:
             LSubprocessOptions.extend(["-Wextra", "-Wall"])
 
-        for LIncludeDir in self.ConfigFile.AdditionalIncludeDirs:
-            LSubprocessOptions.append("-I" + os.path.join(self.ProgramOptions.ProjectRoot, LIncludeDir))
+        LSubprocessOptions.extend(map(lambda LIncludeDir : "-I" + LIncludeDir, self.ConfigFile.AdditionalIncludeDirs))
 
-        LSubprocessOptions.append("-o" + FilesPath.GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, self.ModuleName, PyProjectBuildLibrary.GetFileName(self.FilePath)))
+        LSubprocessOptions.append("-o" + GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, self.ModuleName, GetFileName(self.FilePath)))
         LSubprocessOptions.append(self.FilePath)
+
         return LSubprocessOptions
     #------------------------------------------------------#
     def __GetCommandForGPP(self) -> list[str]:
         LSubprocessOptions = list[str]()
-        LSubprocessOptions.append("g++")
-        LSubprocessOptions.append("-std=c++17")
+        LSubprocessOptions.extend(["g++", "-std=c++17", "-c", "-fexec-charset=UTF-8", "-finput-charset=UTF-8", "-masm=intel"])
         
         if self.ProgramOptions.TargetArch == ProgramOptions.ETargetArch.X86:
             LSubprocessOptions.append("-m32")
@@ -85,10 +75,6 @@ class FCompilingFile:
         else:
             return []
 
-        LSubprocessOptions.extend(["-c"])
-        LSubprocessOptions.extend(["-fexec-charset=UTF-8", "-finput-charset=UTF-8"])
-        LSubprocessOptions.extend(["-masm=intel"])
-
         if self.ProgramOptions.BuildType == ProgramOptions.EBuildType.DEBUG:
             LSubprocessOptions.extend(["-O0", "-g"])
         elif self.ProgramOptions.BuildType == ProgramOptions.EBuildType.SHIPPING:
@@ -102,11 +88,11 @@ class FCompilingFile:
         if self.ConfigFile.EnableAllWarnings:
             LSubprocessOptions.extend(["-Wextra", "-Wall"])
 
-        for LIncludeDir in self.ConfigFile.AdditionalIncludeDirs:
-            LSubprocessOptions.append("-I" + os.path.join(self.ProgramOptions.ProjectRoot, LIncludeDir))
+        LSubprocessOptions.extend(map(lambda LIncludeDir : "-I" + LIncludeDir, self.ConfigFile.AdditionalIncludeDirs))
 
-        LSubprocessOptions.append("-o" + FilesPath.GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, self.ModuleName, PyProjectBuildLibrary.GetFileName(self.FilePath)))
+        LSubprocessOptions.append("-o" + GetPlatformObjectFilePath(self.ProgramOptions, self.ConfigFile, self.ModuleName, GetFileName(self.FilePath)))
         LSubprocessOptions.append(self.FilePath)
+        
         return LSubprocessOptions
     #------------------------------------------------------#
     def __GetCommandForMSVC(self) -> list[str]:
@@ -123,18 +109,18 @@ class FCompilingFile:
         @return stderr string.
     '''
     def Compile(self) -> str:
-        LPlatform  = platform.system()
-        LFileExtension = PyProjectBuildLibrary.GetFileExtension(self.FilePath)
+        LPlatform  = system()
+        LFileExtension = GetFileExtension(self.FilePath)
         LSubprocessOptions = list[str]()
 
-        if LPlatform == PyProjectBuildLibrary.LINUX_PLATFORM:
+        if LPlatform == LINUX_PLATFORM:
             if LFileExtension in ["c", "C"]:
                 LSubprocessOptions = self.__GetCommandForGCC()
             elif LFileExtension in ["cpp", "CPP"]:
                 LSubprocessOptions = self.__GetCommandForGPP()
             else:
                 return "Invalid file extension."
-        elif LPlatform == PyProjectBuildLibrary.WINDOWS_PLATFORM:
+        elif LPlatform == WINDOWS_PLATFORM:
             if LFileExtension in ["c", "C"]:
                 LSubprocessOptions = self.__GetCommandForMSVC()
             elif LFileExtension in ["cpp", "CPP"]:

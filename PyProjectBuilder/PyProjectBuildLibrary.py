@@ -1,12 +1,11 @@
 # Copyright (c) 2022 GrosSlava
 
-import os
-import sys
-
-import platform
-import pathlib
-import shutil
-import time
+from os import mkdir, makedirs
+from os.path import exists, dirname, isabs, isdir, isfile
+from platform import system
+from pathlib import Path
+from shutil import rmtree
+from time import time
 
 
 
@@ -39,7 +38,7 @@ SUPPORTED_FILES = [
 '''
     Version of tool.
 '''
-PY_PROJECT_BUILD_VERSION = "1.1.1"
+PY_PROJECT_BUILD_VERSION = "1.2.0"
 
 
 
@@ -57,7 +56,7 @@ def CheckPlatform(PlatformName: str) -> bool:
     @return true if platform supported.
 '''
 def CheckCurrentPlatform() -> bool:
-    return CheckPlatform(platform.system())
+    return CheckPlatform(system())
 #------------------------------------------------------#
 
 
@@ -67,22 +66,22 @@ def CheckCurrentPlatform() -> bool:
     Create a new directory only if it does not exist.
 '''
 def CreateDirIfNotExist(Dir: str) -> None:
-    if not os.path.exists(Dir):
-        os.mkdir(Dir)
+    if not exists(Dir):
+        mkdir(Dir)
 #------------------------------------------------------#
 '''
     Create a new directory with all subdirs in path only if it does not exist.
 '''
 def CreateDirWithChildren(Dir: str) -> None:
-    if not os.path.exists(Dir):
-        os.makedirs(Dir, exist_ok = True)
+    if not exists(Dir):
+        makedirs(Dir, exist_ok = True)
 #------------------------------------------------------#
 '''
     Remove directory only if it exists.
 '''
 def RemoveDirIfExists(Dir: str) -> None:
     if CheckDirExists(Dir):
-        shutil.rmtree(Dir)
+        rmtree(Dir)
 #------------------------------------------------------#
 
 
@@ -92,8 +91,8 @@ def RemoveDirIfExists(Dir: str) -> None:
     Extract extension from file path.
     @return file extension without leading dot.
 '''
-def GetFileExtension(Path: str) -> str:
-    LSuffix = pathlib.Path(Path).suffix
+def GetFileExtension(FilePath: str) -> str:
+    LSuffix = Path(FilePath).suffix
     if len(LSuffix) < 2:
         return ""
     return LSuffix[1:]
@@ -102,15 +101,15 @@ def GetFileExtension(Path: str) -> str:
     Extract file name from file path.
     @return file name only.
 '''
-def GetFileName(Path: str) -> str:
-    return pathlib.Path(Path).stem
+def GetFileName(FilePath: str) -> str:
+    return Path(FilePath).stem
 #------------------------------------------------------#
 '''
     Extract path-only from file path.
     @return file path only without file name at end. 
 '''
-def GetFilePath(Path: str) -> str:
-    return os.path.dirname(Path)
+def GetFilePath(FilePath: str) -> str:
+    return dirname(FilePath)
 #------------------------------------------------------#
 
 
@@ -119,8 +118,8 @@ def GetFilePath(Path: str) -> str:
 '''
     Check that Path is absolute and exists.
 '''
-def CheckAbsPath(Path: str) -> bool:
-    return os.path.isabs(Path) and os.path.exists(Path)
+def CheckAbsPath(AnyPath: str) -> bool:
+    return isabs(AnyPath) and exists(AnyPath)
 #------------------------------------------------------#
 '''
     Check that file extension is supported to be build.
@@ -132,13 +131,13 @@ def IsFileSupported(FileName: str) -> bool:
     Check that dir exists and it is dir.
 '''
 def CheckDirExists(DirPath: str) -> bool:
-    return os.path.exists(DirPath) and os.path.isdir(DirPath)
+    return exists(DirPath) and isdir(DirPath)
 #------------------------------------------------------#
 '''
     Check that file exists and it is file.
 '''
 def CheckFileExists(DirPath: str) -> bool:
-    return os.path.exists(DirPath) and os.path.isfile(DirPath)
+    return exists(DirPath) and isfile(DirPath)
 #------------------------------------------------------#
 
 
@@ -164,7 +163,7 @@ def SplitAndStrip(S: str, Delimeter: str = ';') -> list[str]:
     @return working time in seconds.
 '''
 def ClockFunction(f) -> float:
-    LStart = time.time()
+    LStart = time()
     f()
-    return time.time() - LStart
+    return time() - LStart
 #------------------------------------------------------#

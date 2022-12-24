@@ -1,10 +1,10 @@
 # Copyright (c) 2022 GrosSlava
 
-import PPBuilder
+from PPBuilder import Run
 
 
 
 
 
 if __name__ == "__main__":
-    PPBuilder.Run()
+    Run()

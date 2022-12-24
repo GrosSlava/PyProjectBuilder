@@ -1,14 +1,10 @@
 # Copyright (c) 2022 GrosSlava
 
-import os
-import sys
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-
-import PyProjectBuildLibrary
-import Logger
-import ProgramOptions
-import ProjectConfigFile
-import BuildPipeline
+from PyProjectBuilder.Logger import *
+from PyProjectBuilder.PyProjectBuildLibrary import CheckCurrentPlatform
+from PyProjectBuilder import ProgramOptions
+from PyProjectBuilder import ProjectConfigFile
+from PyProjectBuilder import BuildPipeline
 
 
 
@@ -18,10 +14,10 @@ import BuildPipeline
     Run builder standard logic.
 '''
 def Run():
-    if not PyProjectBuildLibrary.CheckCurrentPlatform():
-        Logger.ErrorLog("Your os is not supported.")
+    if not CheckCurrentPlatform():
+        ErrorLog("Your os is not supported.")
 
-    LProgramOptions = ProgramOptions.FProgramOptions(sys.argv[1:])
+    LProgramOptions = ProgramOptions.FProgramOptions()
     LProjectConfig = ProjectConfigFile.ParseConfigFile(LProgramOptions.ConfigFilePath)
     
     LBuildPipeline = BuildPipeline.FBuildPipeline(LProgramOptions, LProjectConfig)
@@ -34,7 +30,7 @@ def Run():
         LBuildPipeline.Clear()
         LBuildPipeline.Build()
     else:
-        Logger.ErrorLog("Invalid builder action.")
+        ErrorLog("Invalid builder action.")
 #------------------------------------------------------#
 
 
