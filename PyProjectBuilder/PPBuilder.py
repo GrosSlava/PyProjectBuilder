@@ -1,7 +1,5 @@
 # Copyright (c) 2022 GrosSlava
 
-from sys import argv
-
 from PyProjectBuilder.Logger import *
 from PyProjectBuilder.PyProjectBuildLibrary import CheckCurrentPlatform
 from PyProjectBuilder import ProgramOptions
@@ -19,7 +17,7 @@ def Run():
     if not CheckCurrentPlatform():
         ErrorLog("Your os is not supported.")
 
-    LProgramOptions = ProgramOptions.FProgramOptions(argv[1:])
+    LProgramOptions = ProgramOptions.FProgramOptions()
     LProjectConfig = ProjectConfigFile.ParseConfigFile(LProgramOptions.ConfigFilePath)
     
     LBuildPipeline = BuildPipeline.FBuildPipeline(LProgramOptions, LProjectConfig)

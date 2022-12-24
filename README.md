@@ -20,16 +20,13 @@ It is easier in use than Makefile or CMake.
 
 
 ## Tool options
-
-```--help```                                            ---List all options \
-```--version```                                         ---Print current version \
-```--BuildType=[Debug, Shipping]```                     ---Type of build \
-```--TargetArch=[x86, x86_64, arm, arm_64]```           ---Build target architecture \
-```--BUILD```                                           ---Build project \
-```--REBUILD```                                         ---Clear intermediate and build project \
-```--CLEAR```                                           ---Clear intermediate files \
-```--SILENT```                                          ---Disable compilation logs \
-```--NO_MULTIPROCESSING```                              ---Disable parallel compilation
+```--version```                                         show program's version number and exit \
+```-h```, ```--help```                                  show this help message and exit \
+```-a TYPE```, ```--Action=TYPE```                      select tool action (Build, Rebuild, Clear) \
+```-b TYPE```, ```--BuildType=TYPE```                   type of build (Debug, Shipping) \
+```-t ARCH```, ```--TargetArch=ARCH```                  build target architecture (x86, x86_64, arm, arm_64) \
+```-s```, ```--SILENT```                                disable compilation logs \
+```--NO_MULTIPROCESSING```                              disable parallel compilation
 
 ## Build config options
 
