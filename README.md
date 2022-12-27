@@ -4,12 +4,15 @@ It is tool to build your c/c++ project.
 It is easier in use than Makefile or CMake.
 
 
+
 ## Main features
+
 - Not need to write build script
 - Use incremental build
 - Analyzes files dependencies
 
 ## How to use
+
 - First time run ```Install``` script
 - Put in the project root directory file 'PyBuildFile.txt'
 - Write your build configuration in 'PyBuildFile.txt' (see build config)
@@ -17,9 +20,8 @@ It is easier in use than Makefile or CMake.
 - Run tool by ```PPBuild <path to your PyBuildFile.txt>``` if it was installed by using ```Install``` script
 - By default (if no path to file) PPBuild searches 'PyBuildFile.txt' in execution directory
 
-
-
 ## Tool options
+
 ```--version```                                         show program's version number and exit \
 ```-h```, ```--help```                                  show this help message and exit \
 ```-a TYPE```, ```--Action=TYPE```                      select tool action (Build, Rebuild, Clear) \
@@ -27,6 +29,8 @@ It is easier in use than Makefile or CMake.
 ```-t ARCH```, ```--TargetArch=ARCH```                  build target architecture (x86, x86_64, arm, arm_64) \
 ```-s```, ```--SILENT```                                disable compilation logs \
 ```--NO_MULTIPROCESSING```                              disable parallel compilation
+
+
 
 ## Build config options
 
