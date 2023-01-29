@@ -1,1 +1,1 @@
-# Copyright (c) 2022 GrosSlava
+# Copyright (c) 2022 - 2023 GrosSlava. All rights reserved.
