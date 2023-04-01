@@ -1,11 +1,12 @@
 #!/bin/bash
+# Copyright (c) 2022-2023 GrosSlava
 
 SCRIPT_PATH=`realpath "$0"`
 SCRIPT_DIR=`dirname "$SCRIPT_PATH"`
 
 
 
-# install needed tools
+# Install needed tools
 echo "------------------Tools-----------------"
 sudo apt-get update
 sudo apt-get install -y python3
@@ -14,16 +15,16 @@ sudo apt-get install -y python3-venv
 sudo python3 -m pip install --upgrade pip
 echo "----------------------------------------"
 
-# create enviroment
+# Create enviroment
 python3 -m venv venv
 
-# set enviroment
+# Set enviroment
 source $SCRIPT_DIR/venv/bin/activate
 
-# install requirements
+# Install requirements
 pip3 install -r $SCRIPT_DIR/Requirements.txt
 
-# show versions
+# Show versions
 echo "------------Current veriosns------------"
 python3 --version
 pip3 --version

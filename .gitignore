@@ -1,19 +1,17 @@
-
-//..................Intermediate folders...................//
-
 # Python intermediate folders
-**.env
-**.venv
-**env
-**venv
-**ENV
-**env.bak
-**venv.bak
-**__pycache__
-**.egg-info
+**/.env
+**/.venv
+**/env
+**/venv
+**/ENV
+**/env.bak
+**/venv.bak
+**/__pycache__
+**/.egg-info
 
-**.Trash-*
-**.vscode
+# Visual Studio
+**/.vscode
 **.code-workspace
 
-//.........................................................//
+# Other
+**.Trash-*

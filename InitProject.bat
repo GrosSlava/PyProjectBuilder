@@ -1,26 +1,29 @@
+rem Copyright (c) 2022-2023 GrosSlava
 @echo off
 
 
 
-rem install needed tools
+:begin
+rem Install needed tools
 echo "------------------Tools-----------------"
 python -m pip install --upgrade pip
 echo "----------------------------------------"
 
-rem create enviroment
+rem Create enviroment
 python -m venv venv
 
-rem set enviroment
-call %~dp0\venv\Scripts\activate.bat
+rem Set enviroment
+call "%~dp0\venv\Scripts\activate.bat"
 
-rem install requirements
-pip install -r %~dp0\Requirements.txt
+rem Install requirements
+pip install -r "%~dp0\Requirements.txt"
 
-rem show versions
+rem Show versions
 echo "------------Current veriosns------------"
 python -V
 pip -V
 pip list
 echo "----------------------------------------"
 
+:end
 pause
